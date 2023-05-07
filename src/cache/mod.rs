@@ -1,8 +1,11 @@
 use std::env;
+use std::future::Future;
 
 use async_trait::async_trait;
 use serde::{Deserialize, Serialize};
 use tokio::sync::OnceCell;
+
+use crate::res::AppRes;
 
 mod array_cache;
 
@@ -11,11 +14,11 @@ static CACHE: OnceCell<Box<dyn Cache<String>>> = OnceCell::const_new();
 #[async_trait]
 pub trait Cache<T: 'static + Clone>: Send + Sync
 {
-	async fn get(&self, key: &str) -> Option<T>;
+	async fn get(&self, key: &str) -> AppRes<Option<T>>;
 
-	async fn add(&self, key: String, value: T, ttl: usize);
+	async fn add(&self, key: String, value: T, ttl: usize) -> AppRes<()>;
 
-	async fn delete(&self, key: &str);
+	async fn delete(&self, key: &str) -> AppRes<()>;
 }
 
 pub async fn init_cache()
@@ -27,25 +30,27 @@ pub async fn init_cache()
 	}
 }
 
-pub async fn get(key: &str) -> Option<String>
+#[allow(clippy::needless_lifetimes)]
+pub fn get<'a>(key: &'a str) -> impl Future<Output = AppRes<Option<String>>> + 'a
 {
 	let cache = CACHE.get().unwrap();
 
-	cache.get(key).await
+	cache.get(key)
 }
 
-pub async fn add(key: String, value: String, ttl: usize)
+pub fn add(key: String, value: String, ttl: usize) -> impl Future<Output = AppRes<()>>
 {
 	let cache = CACHE.get().unwrap();
 
-	cache.add(key, value, ttl).await
+	cache.add(key, value, ttl)
 }
 
-pub async fn delete(key: &str)
+#[allow(clippy::needless_lifetimes)]
+pub fn delete<'a>(key: &'a str) -> impl Future<Output = AppRes<()>> + 'a
 {
 	let cache = CACHE.get().unwrap();
 
-	cache.delete(key).await;
+	cache.delete(key)
 }
 
 #[derive(Serialize, Deserialize)]

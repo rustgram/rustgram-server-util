@@ -5,6 +5,7 @@ use tokio::sync::RwLock;
 
 use crate::cache::Cache;
 use crate::get_time_in_sec;
+use crate::res::AppRes;
 
 pub struct CacheData<T: 'static + Clone>
 {
@@ -37,23 +38,23 @@ impl<T: 'static + Clone> ArrayCache<T>
 #[async_trait]
 impl<T: 'static + Clone + Send + Sync> Cache<T> for ArrayCache<T>
 {
-	async fn get(&self, key: &str) -> Option<T>
+	async fn get(&self, key: &str) -> AppRes<Option<T>>
 	{
 		let cache = self.cache.read().await;
 
 		match cache.get(key) {
 			Some(v) => {
 				if v.ttl < get_time_in_sec().unwrap() as usize {
-					return None;
+					return Ok(None);
 				}
 
-				Some(v.value.clone())
+				Ok(Some(v.value.clone()))
 			},
-			None => None,
+			None => Ok(None),
 		}
 	}
 
-	async fn add(&self, key: String, value: T, ttl: usize)
+	async fn add(&self, key: String, value: T, ttl: usize) -> AppRes<()>
 	{
 		let ttl = ttl + get_time_in_sec().unwrap() as usize;
 
@@ -64,11 +65,15 @@ impl<T: 'static + Clone + Send + Sync> Cache<T> for ArrayCache<T>
 				value,
 			},
 		);
+
+		Ok(())
 	}
 
-	async fn delete(&self, key: &str)
+	async fn delete(&self, key: &str) -> AppRes<()>
 	{
 		self.cache.write().await.remove(key);
+
+		Ok(())
 	}
 }
 
