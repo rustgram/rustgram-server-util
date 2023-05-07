@@ -1532,7 +1532,6 @@ dependencies = [
  "hyper",
  "mysql_async",
  "mysql_common",
- "regex",
  "rusqlite",
  "rustgram",
  "rustgram-server-util-macros",
