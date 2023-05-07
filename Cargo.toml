@@ -1,0 +1,5 @@
+[workspace]
+members = [
+	"rustgram-server-util",
+	"rustgram-server-util-macros"
+]
