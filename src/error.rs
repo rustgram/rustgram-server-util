@@ -9,6 +9,8 @@ pub trait ServerErrorCodes
 #[derive(Debug)]
 pub enum CoreErrorCodes
 {
+	IdWrongFormat,
+
 	JsonToString,
 	JsonParse,
 
@@ -40,6 +42,8 @@ impl ServerErrorCodes for CoreErrorCodes
 	fn get_int_code(&self) -> u32
 	{
 		match self {
+			CoreErrorCodes::IdWrongFormat => 1,
+
 			CoreErrorCodes::JsonToString => 10,
 			CoreErrorCodes::JsonParse => 11,
 			CoreErrorCodes::InputTooBig => 12,

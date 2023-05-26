@@ -4,10 +4,18 @@ use tokio::sync::OnceCell;
 
 use crate::error::{CoreErrorCodes, ServerCoreError, ServerErrorConstructor};
 
+pub mod id_handling;
 #[cfg(feature = "mysql")]
 mod mariadb;
 #[cfg(feature = "sqlite")]
 mod sqlite;
+
+#[cfg(feature = "mysql")]
+pub use mysql_async as mysql_async_export;
+#[cfg(feature = "mysql")]
+pub use mysql_common as mysql_common_export;
+#[cfg(feature = "sqlite")]
+pub use rusqlite as rusqlite_export;
 
 #[cfg(feature = "mysql")]
 pub use self::mariadb::{bulk_insert, exec, exec_string, exec_transaction, query, query_first, query_first_string, query_string, TransactionData};
@@ -198,13 +206,6 @@ macro_rules! set_params_vec_outer {
 		tmp
 	}};
 }
-
-#[cfg(feature = "mysql")]
-pub use mysql_async as mysql_async_export;
-#[cfg(feature = "mysql")]
-pub use mysql_common as mysql_common_export;
-#[cfg(feature = "sqlite")]
-pub use rusqlite as rusqlite_export;
 
 //__________________________________________________________________________________________________
 

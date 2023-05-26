@@ -11,7 +11,7 @@ members = [
 ]
 
 [dependencies]
-rustgram-server-util-macros = {version = "0.1.0", path = "./rustgram-server-util-macros", optional = true}
+rustgram-server-util-macros = {path = "./rustgram-server-util-macros", optional = true}
 
 rustgram = "^0.1.8"
 hyper = { version = "^0.14", features = ["full"] }
@@ -44,9 +44,11 @@ rusqlite = { version = "0.28.0", features = ["bundled"], optional = true }
 
 #_______________________________________________________________________________________________________________________
 
-[dev-dependencies]
 # id
 uuid = {version="1.1.2", features= ["v4", "fast-rng"]}
+
+[dev-dependencies]
+
 
 [features]
 default = ["mysql"]
