@@ -11,9 +11,11 @@ pub struct TestData
 }
 
 #[cfg(feature = "mysql")]
-impl mysql_async::prelude::FromRow for TestData
+impl rustgram_server_util::db::mysql_async_export::prelude::FromRow for TestData
 {
-	fn from_row_opt(mut row: mysql_async::Row) -> Result<Self, mysql_async::FromRowError>
+	fn from_row_opt(
+		mut row: rustgram_server_util::db::mysql_async_export::Row,
+	) -> Result<Self, rustgram_server_util::db::mysql_async_export::FromRowError>
 	where
 		Self: Sized,
 	{
@@ -26,16 +28,16 @@ impl mysql_async::prelude::FromRow for TestData
 }
 
 #[cfg(feature = "sqlite")]
-impl server_core::db::FromSqliteRow for TestData
+impl rustgram_server_util::db::FromSqliteRow for TestData
 {
-	fn from_row_opt(row: &rusqlite::Row) -> Result<Self, server_core::db::FormSqliteRowError>
+	fn from_row_opt(row: &rustgram_server_util::db::rusqlite_export::Row) -> Result<Self, rustgram_server_util::db::FormSqliteRowError>
 	where
 		Self: Sized,
 	{
 		//time needs to parse from string to the value
 		let time: String = take_or_err!(row, 2);
 		let time: u128 = time.parse().map_err(|e| {
-			server_core::db::FormSqliteRowError {
+			rustgram_server_util::db::FormSqliteRowError {
 				msg: format!("err in db fetch: {:?}", e),
 			}
 		})?;
