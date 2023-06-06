@@ -19,6 +19,8 @@ pub trait Cache<T: 'static + Clone>: Send + Sync
 	async fn add(&self, key: String, value: T, ttl: usize) -> AppRes<()>;
 
 	async fn delete(&self, key: &str) -> AppRes<()>;
+
+	async fn delete_multiple(&self, keys: &[&str]) -> AppRes<()>;
 }
 
 pub async fn init_cache()
@@ -51,6 +53,13 @@ pub fn delete<'a>(key: &'a str) -> impl Future<Output = AppRes<()>> + 'a
 	let cache = CACHE.get().unwrap();
 
 	cache.delete(key)
+}
+
+pub fn delete_multiple<'a>(keys: &'a [&str]) -> impl Future<Output = AppRes<()>> + 'a
+{
+	let cache = CACHE.get().unwrap();
+
+	cache.delete_multiple(keys)
 }
 
 #[derive(Serialize, Deserialize)]

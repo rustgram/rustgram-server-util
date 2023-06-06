@@ -75,6 +75,17 @@ impl<T: 'static + Clone + Send + Sync> Cache<T> for ArrayCache<T>
 
 		Ok(())
 	}
+
+	async fn delete_multiple(&self, keys: &[&str]) -> AppRes<()>
+	{
+		let mut c = self.cache.write().await;
+
+		for key in keys {
+			c.remove(*key);
+		}
+
+		Ok(())
+	}
 }
 
 /**
