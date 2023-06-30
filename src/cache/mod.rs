@@ -25,7 +25,7 @@ pub trait Cache<T: 'static + Clone>: Send + Sync
 
 pub async fn init_cache()
 {
-	let cache = env::var("CACHE").unwrap();
+	let cache = env::var("CACHE").unwrap_or_else(|_| "1".to_string());
 
 	if cache.as_str() == "1" {
 		CACHE.get_or_init(array_cache::init_cache::<String>).await;
