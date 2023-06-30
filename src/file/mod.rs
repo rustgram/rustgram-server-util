@@ -24,7 +24,7 @@ pub trait FileHandler: Send + Sync
 
 pub async fn init_storage()
 {
-	let storage = env::var("BACKEND_STORAGE").unwrap();
+	let storage = env::var("BACKEND_STORAGE").unwrap_or_else(|_| "0".to_string());
 
 	if storage.as_str() == "0" {
 		FILE_HANDLER.get_or_init(local_storage::init_storage).await;
