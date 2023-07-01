@@ -204,6 +204,42 @@ where
 		.map_err(|e| db_query_err(&e))
 }
 
+pub async fn query_non_param<T>(sql: &'static str) -> Result<Vec<T>, ServerCoreError>
+where
+	T: FromRow + Send + 'static,
+{
+	let mut conn = get_conn().await?;
+
+	conn.query(sql).await.map_err(|e| db_query_err(&e))
+}
+
+pub async fn query_string_non_param<T>(sql: String) -> Result<Vec<T>, ServerCoreError>
+where
+	T: FromRow + Send + 'static,
+{
+	let mut conn = get_conn().await?;
+
+	conn.query(sql).await.map_err(|e| db_query_err(&e))
+}
+
+pub async fn query_first_non_param<T>(sql: &'static str) -> Result<Option<T>, ServerCoreError>
+where
+	T: FromRow + Send + 'static,
+{
+	let mut conn = get_conn().await?;
+
+	conn.query_first(sql).await.map_err(|e| db_query_err(&e))
+}
+
+pub async fn query_first_string_non_param<T>(sql: String) -> Result<Option<T>, ServerCoreError>
+where
+	T: FromRow + Send + 'static,
+{
+	let mut conn = get_conn().await?;
+
+	conn.query_first(sql).await.map_err(|e| db_query_err(&e))
+}
+
 /**
 # Execute a sql stmt
 
@@ -229,6 +265,20 @@ where
 	conn.exec_drop(sql, params)
 		.await
 		.map_err(|e| db_exec_err(&e))
+}
+
+pub async fn exec_non_param(sql: &str) -> Result<(), ServerCoreError>
+{
+	let mut conn = get_conn().await?;
+
+	conn.query_drop(sql).await.map_err(|e| db_exec_err(&e))
+}
+
+pub async fn exec_string_non_param(sql: String) -> Result<(), ServerCoreError>
+{
+	let mut conn = get_conn().await?;
+
+	conn.query_drop(sql).await.map_err(|e| db_exec_err(&e))
 }
 
 /**

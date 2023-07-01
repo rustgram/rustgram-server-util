@@ -18,17 +18,39 @@ pub use mysql_common as mysql_common_export;
 pub use rusqlite as rusqlite_export;
 
 #[cfg(feature = "mysql")]
-pub use self::mariadb::{bulk_insert, exec, exec_string, exec_transaction, query, query_first, query_first_string, query_string, TransactionData};
+pub use self::mariadb::{
+	bulk_insert,
+	exec,
+	exec_non_param,
+	exec_string,
+	exec_string_non_param,
+	exec_transaction,
+	query,
+	query_first,
+	query_first_non_param,
+	query_first_string,
+	query_first_string_non_param,
+	query_non_param,
+	query_string,
+	query_string_non_param,
+	TransactionData,
+};
 #[cfg(feature = "sqlite")]
 pub use self::sqlite::{
 	bulk_insert,
 	exec,
+	exec_non_param,
 	exec_string,
+	exec_string_non_param,
 	exec_transaction,
 	query,
 	query_first,
+	query_first_non_param,
 	query_first_string,
+	query_first_string_non_param,
+	query_non_param,
 	query_string,
+	query_string_non_param,
 	FormSqliteRowError,
 	FromSqliteRow,
 	TransactionData,
