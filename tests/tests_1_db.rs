@@ -1,4 +1,17 @@
-use rustgram_server_util::db::{bulk_insert, exec, exec_transaction, get_in, init_db, query, query_first, query_string, TransactionData};
+use rustgram_server_util::db::{
+	bulk_insert,
+	exec,
+	exec_non_param,
+	exec_transaction,
+	get_in,
+	init_db,
+	query,
+	query_first,
+	query_first_non_param,
+	query_string,
+	StringEntity,
+	TransactionData,
+};
 use rustgram_server_util::{get_time, set_params, take_or_err};
 use uuid::Uuid;
 
@@ -50,27 +63,43 @@ impl rustgram_server_util::db::FromSqliteRow for TestData
 	}
 }
 
-#[ignore]
 #[tokio::test]
-async fn db_test()
+async fn aaa_init()
 {
 	dotenv::dotenv().ok();
 
 	init_db().await;
 
-	test_db_insert_and_fetch().await;
-	test_db_insert_and_fetch_with_get_ins().await;
-	test_db_bulk_insert().await;
-	test_tx_exec().await;
+	//language=SQL
+	let sql = r"
+CREATE table IF NOT EXISTS test (
+    `id` varchar(36) NOT NULL,
+    `name` text DEFAULT NULL,
+    `time` text DEFAULT NULL
+)";
+
+	exec_non_param(sql).await.unwrap();
+
+	#[cfg(feature = "mysql")]
+	//language=SQL
+	let sql = "SHOW TABLES LIKE 'test'";
+
+	#[cfg(feature = "sqlite")]
+	let sql = "SELECT name FROM sqlite_master WHERE type='table' AND name LIKE 'test'";
+
+	let res: Option<StringEntity> = query_first_non_param(sql).await.unwrap();
+
+	assert!(res.is_some());
 }
 
-/**
-# Test the db
-This test should run for both sqlite and mysql
- */
-async fn test_db_insert_and_fetch()
+#[tokio::test]
+async fn test_10_db_insert_and_fetch()
 {
-	//language=SQL
+	dotenv::dotenv().ok();
+
+	init_db().await;
+
+	//language=SQLx
 	let sql = "INSERT INTO test (id, name, time) VALUES (?,?,?)";
 
 	let id = Uuid::new_v4().to_string();
@@ -82,7 +111,7 @@ async fn test_db_insert_and_fetch()
 		.unwrap();
 
 	//fetch the new test data
-	//language=SQL
+	//language=SQLx
 	let sql = "SELECT * FROM test WHERE id = ?";
 
 	let test_data: Vec<TestData> = query(sql, set_params!(id.clone())).await.unwrap();
@@ -107,10 +136,15 @@ async fn test_db_insert_and_fetch()
 	assert!(not_found_datum);
 }
 
-async fn test_db_insert_and_fetch_with_get_ins()
+#[tokio::test]
+async fn test_12_insert_and_fetch_with_get_ins()
 {
+	dotenv::dotenv().ok();
+
+	init_db().await;
+
 	//two inserts
-	//language=SQL
+	//language=SQLx
 	let sql = "INSERT INTO test (id, name, time) VALUES (?,?,?)";
 
 	let id1 = Uuid::new_v4().to_string();
@@ -121,7 +155,7 @@ async fn test_db_insert_and_fetch_with_get_ins()
 		.await
 		.unwrap();
 
-	//language=SQL
+	//language=SQLx
 	let sql = "INSERT INTO test (id, name, time) VALUES (?,?,?)";
 
 	let id2 = Uuid::new_v4().to_string();
@@ -148,8 +182,13 @@ async fn test_db_insert_and_fetch_with_get_ins()
 	assert_eq!(test_data[1].id, id2);
 }
 
-async fn test_db_bulk_insert()
+#[tokio::test]
+async fn test_13_bulk_insert()
 {
+	dotenv::dotenv().ok();
+
+	init_db().await;
+
 	//do this extra because we need the ids later to check if this values are in the db
 	let id1 = Uuid::new_v4().to_string();
 	let id2 = Uuid::new_v4().to_string();
@@ -197,23 +236,28 @@ async fn test_db_bulk_insert()
 	assert_eq!(test_data[2].id, id3);
 }
 
-async fn test_tx_exec()
+#[tokio::test]
+async fn test_14_tx_exec()
 {
-	//language=SQL
+	dotenv::dotenv().ok();
+
+	init_db().await;
+
+	//language=SQLx
 	let sql = "INSERT INTO test (id, name, time) VALUES (?,?,?)";
 
 	let id1 = Uuid::new_v4().to_string();
 	let name1 = "hello1".to_string();
 	let time1 = get_time().unwrap();
 
-	//language=SQL
+	//language=SQLx
 	let sql2 = "INSERT INTO test (id, name, time) VALUES (?,?,?)";
 
 	let id2 = Uuid::new_v4().to_string();
 	let name2 = "hello2".to_string();
 	let time2 = get_time().unwrap();
 
-	//language=SQL
+	//language=SQLx
 	let sql3 = "INSERT INTO test (id, name, time) VALUES (?,?,?)";
 
 	let id3 = Uuid::new_v4().to_string();
@@ -252,4 +296,28 @@ async fn test_tx_exec()
 	assert_eq!(test_data[0].id, id1);
 	assert_eq!(test_data[1].id, id2);
 	assert_eq!(test_data[2].id, id3);
+}
+
+#[tokio::test]
+async fn zzz_clean_up()
+{
+	dotenv::dotenv().ok();
+
+	init_db().await;
+
+	//language=SQLx
+	let sql = "DROP TABLE test";
+
+	exec_non_param(sql).await.unwrap();
+
+	#[cfg(feature = "mysql")]
+	//language=SQL
+	let sql = "SHOW TABLES LIKE 'test'";
+
+	#[cfg(feature = "sqlite")]
+	let sql = "SELECT name FROM sqlite_master WHERE type='table' AND name LIKE 'test'";
+
+	let res: Option<StringEntity> = query_first_non_param(sql).await.unwrap();
+
+	assert!(res.is_none());
 }
