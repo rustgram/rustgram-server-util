@@ -304,6 +304,93 @@ where
 	Ok(result)
 }
 
+fn query_non_param_sync<T>(conn: &mut Connection, sql: &str) -> Result<Vec<T>, ServerCoreError>
+where
+	T: FromSqliteRow,
+{
+	let mut stmt = conn.prepare(sql).map_err(|e| db_query_err(&e))?;
+
+	let mut rows = stmt.query([]).map_err(|e| db_query_err(&e))?;
+
+	let mut init: Vec<T> = Vec::new();
+
+	while let Some(row) = rows.next().map_err(|e| db_query_err(&e))? {
+		init.push(FromSqliteRow::from_row_opt(row).map_err(|e| db_query_err(&e))?)
+	}
+
+	Ok(init)
+}
+
+pub async fn query_non_param<T>(sql: &'static str) -> Result<Vec<T>, ServerCoreError>
+where
+	T: FromSqliteRow + Send + 'static,
+{
+	let conn = get_conn().await?;
+
+	let result = conn
+		.interact(move |conn| query_non_param_sync(conn, sql))
+		.await
+		.map_err(|e| db_query_err(&e))??;
+
+	Ok(result)
+}
+
+pub async fn query_string_non_param<T>(sql: String) -> Result<Vec<T>, ServerCoreError>
+where
+	T: FromSqliteRow + Send + 'static,
+{
+	let conn = get_conn().await?;
+
+	let result = conn
+		.interact(move |conn| query_non_param_sync(conn, sql.as_str()))
+		.await
+		.map_err(|e| db_query_err(&e))??;
+
+	Ok(result)
+}
+
+fn query_first_non_param_sync<T>(conn: &mut Connection, sql: &str) -> Result<Option<T>, ServerCoreError>
+where
+	T: FromSqliteRow,
+{
+	let mut stmt = conn.prepare(sql).map_err(|e| db_query_err(&e))?;
+
+	let mut rows = stmt.query([]).map_err(|e| db_query_err(&e))?;
+
+	match rows.next().map_err(|e| db_query_err(&e))? {
+		Some(row) => Ok(Some(FromSqliteRow::from_row_opt(row).map_err(|e| db_query_err(&e))?)),
+		None => Ok(None),
+	}
+}
+
+pub async fn query_first_non_param<T>(sql: &'static str) -> Result<Option<T>, ServerCoreError>
+where
+	T: FromSqliteRow + Send + 'static,
+{
+	let conn = get_conn().await?;
+
+	let result = conn
+		.interact(move |conn| query_first_non_param_sync(conn, sql))
+		.await
+		.map_err(|e| db_query_err(&e))??;
+
+	Ok(result)
+}
+
+pub async fn query_first_string_non_param<T>(sql: String) -> Result<Option<T>, ServerCoreError>
+where
+	T: FromSqliteRow + Send + 'static,
+{
+	let conn = get_conn().await?;
+
+	let result = conn
+		.interact(move |conn| query_first_non_param_sync(conn, sql.as_str()))
+		.await
+		.map_err(|e| db_query_err(&e))??;
+
+	Ok(result)
+}
+
 fn exec_sync<P>(conn: &mut Connection, sql: &str, params: P) -> Result<usize, ServerCoreError>
 where
 	P: IntoIterator,
@@ -356,6 +443,33 @@ where
 	let conn = get_conn().await?;
 
 	conn.interact(move |conn| exec_sync(conn, sql.as_str(), params))
+		.await
+		.map_err(|e| db_exec_err(&e))??;
+
+	Ok(())
+}
+
+fn exec_non_param_sync(conn: &mut Connection, sql: &str) -> Result<usize, ServerCoreError>
+{
+	conn.execute(sql, []).map_err(|e| db_exec_err(&e))
+}
+
+pub async fn exec_non_param(sql: &'static str) -> Result<(), ServerCoreError>
+{
+	let conn = get_conn().await?;
+
+	conn.interact(move |conn| exec_non_param_sync(conn, sql))
+		.await
+		.map_err(|e| db_exec_err(&e))??;
+
+	Ok(())
+}
+
+pub async fn exec_string_non_param(sql: String) -> Result<(), ServerCoreError>
+{
+	let conn = get_conn().await?;
+
+	conn.interact(move |conn| exec_non_param_sync(conn, sql.as_str()))
 		.await
 		.map_err(|e| db_exec_err(&e))??;
 
