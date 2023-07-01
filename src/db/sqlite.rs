@@ -334,34 +334,32 @@ async fn lol()
 
 ````
 */
-pub async fn exec<P>(sql: &'static str, params: P) -> Result<usize, ServerCoreError>
+pub async fn exec<P>(sql: &'static str, params: P) -> Result<(), ServerCoreError>
 where
 	P: IntoIterator + Send + 'static,
 	P::Item: ToSql,
 {
 	let conn = get_conn().await?;
 
-	let result = conn
-		.interact(move |conn| exec_sync(conn, sql, params))
+	conn.interact(move |conn| exec_sync(conn, sql, params))
 		.await
 		.map_err(|e| db_exec_err(&e))??;
 
-	Ok(result)
+	Ok(())
 }
 
-pub async fn exec_string<P>(sql: String, params: P) -> Result<usize, ServerCoreError>
+pub async fn exec_string<P>(sql: String, params: P) -> Result<(), ServerCoreError>
 where
 	P: IntoIterator + Send + 'static,
 	P::Item: ToSql,
 {
 	let conn = get_conn().await?;
 
-	let result = conn
-		.interact(move |conn| exec_sync(conn, sql.as_str(), params))
+	conn.interact(move |conn| exec_sync(conn, sql.as_str(), params))
 		.await
 		.map_err(|e| db_exec_err(&e))??;
 
-	Ok(result)
+	Ok(())
 }
 
 fn exec_transaction_sync<P>(conn: &mut Connection, data: Vec<TransactionData<P>>) -> Result<(), ServerCoreError>
