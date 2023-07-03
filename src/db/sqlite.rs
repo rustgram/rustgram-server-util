@@ -114,6 +114,7 @@ pub async fn create_db() -> Pool
 
 	assert_eq!(result, 1);
 
+	#[cfg(debug_assertions)]
 	println!("init sqlite");
 
 	pool

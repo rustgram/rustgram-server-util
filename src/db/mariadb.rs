@@ -70,6 +70,7 @@ pub async fn create_db() -> Pool
 
 	let pool = Pool::new(format!("mysql://{}:{}@{}/{}", user, pw, mysql_host, db).as_str());
 
+	#[cfg(debug_assertions)]
 	println!("init mariadb");
 
 	pool

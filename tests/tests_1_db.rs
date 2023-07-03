@@ -64,7 +64,35 @@ impl rustgram_server_util::db::FromSqliteRow for TestData
 }
 
 #[tokio::test]
-async fn aaa_init()
+async fn tests()
+{
+	println!("-----------");
+	println!("init");
+	init().await;
+
+	println!("-----------");
+	println!("db_insert_and_fetch");
+	test_10_db_insert_and_fetch().await;
+
+	println!("-----------");
+	println!("insert_and_fetch_with_get_ins");
+	test_12_insert_and_fetch_with_get_ins().await;
+
+	println!("-----------");
+	println!("bulk_insert");
+	test_13_bulk_insert().await;
+
+	println!("-----------");
+	println!("tx_exec");
+	test_14_tx_exec().await;
+
+	println!("-----------");
+	println!("clean up");
+	clean_up().await;
+	println!("-----------");
+}
+
+async fn init()
 {
 	dotenv::dotenv().ok();
 
@@ -92,7 +120,6 @@ CREATE table IF NOT EXISTS test (
 	assert!(res.is_some());
 }
 
-#[tokio::test]
 async fn test_10_db_insert_and_fetch()
 {
 	dotenv::dotenv().ok();
@@ -136,7 +163,6 @@ async fn test_10_db_insert_and_fetch()
 	assert!(not_found_datum);
 }
 
-#[tokio::test]
 async fn test_12_insert_and_fetch_with_get_ins()
 {
 	dotenv::dotenv().ok();
@@ -182,7 +208,6 @@ async fn test_12_insert_and_fetch_with_get_ins()
 	assert_eq!(test_data[1].id, id2);
 }
 
-#[tokio::test]
 async fn test_13_bulk_insert()
 {
 	dotenv::dotenv().ok();
@@ -236,7 +261,6 @@ async fn test_13_bulk_insert()
 	assert_eq!(test_data[2].id, id3);
 }
 
-#[tokio::test]
 async fn test_14_tx_exec()
 {
 	dotenv::dotenv().ok();
@@ -298,8 +322,7 @@ async fn test_14_tx_exec()
 	assert_eq!(test_data[2].id, id3);
 }
 
-#[tokio::test]
-async fn zzz_clean_up()
+async fn clean_up()
 {
 	dotenv::dotenv().ok();
 

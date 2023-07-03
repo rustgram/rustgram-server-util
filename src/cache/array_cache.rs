@@ -7,7 +7,7 @@ use crate::cache::Cache;
 use crate::get_time_in_sec;
 use crate::res::AppRes;
 
-pub struct CacheData<T: 'static + Clone>
+struct CacheData<T: 'static + Clone>
 {
 	value: T,
 	ttl: usize,
@@ -95,5 +95,8 @@ Must be async for RwLock from tokio.
 */
 pub async fn init_cache<T: 'static + Clone + Send + Sync>() -> Box<dyn Cache<T>>
 {
+	#[cfg(debug_assertions)]
+	println!("init array cache");
+
 	Box::new(ArrayCache::new())
 }
