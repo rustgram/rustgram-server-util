@@ -94,6 +94,7 @@ impl<T: 'static + Clone + Send + Sync + FromRedisValue + ToRedisArgs> Cache<T> f
 
 pub async fn init_cache<T: 'static + Clone + Send + Sync + FromRedisValue + ToRedisArgs>() -> Box<dyn Cache<T>>
 {
+	#[cfg(debug_assertions)]
 	println!("init redis");
 
 	Box::new(RedisCache::new())
