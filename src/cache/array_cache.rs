@@ -7,7 +7,7 @@ use crate::cache::Cache;
 use crate::get_time_in_sec;
 use crate::res::AppRes;
 
-pub struct CacheData<T: 'static + Clone>
+struct CacheData<T: 'static + Clone>
 {
 	value: T,
 	ttl: usize,
