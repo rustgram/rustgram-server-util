@@ -35,6 +35,8 @@ pub enum CoreErrorCodes
 	FileSave,
 	FileTooLarge,
 	FileDownload,
+
+	RedisError,
 }
 
 impl ServerErrorCodes for CoreErrorCodes
@@ -60,6 +62,8 @@ impl ServerErrorCodes for CoreErrorCodes
 
 			CoreErrorCodes::EmailSend => 50,
 			CoreErrorCodes::EmailMessage => 51,
+
+			CoreErrorCodes::RedisError => 52,
 
 			CoreErrorCodes::FileLocalOpen => 500,
 			CoreErrorCodes::FileRemove => 501,

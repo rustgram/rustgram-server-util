@@ -8,6 +8,7 @@ use tokio::sync::OnceCell;
 use crate::res::AppRes;
 
 mod array_cache;
+mod redis;
 
 static CACHE: OnceCell<Box<dyn Cache<String>>> = OnceCell::const_new();
 
@@ -27,8 +28,14 @@ pub async fn init_cache()
 {
 	let cache = env::var("CACHE").unwrap_or_else(|_| "1".to_string());
 
-	if cache.as_str() == "1" {
-		CACHE.get_or_init(array_cache::init_cache::<String>).await;
+	match cache.as_str() {
+		"1" => {
+			CACHE.get_or_init(array_cache::init_cache::<String>).await;
+		},
+		"2" => {
+			CACHE.get_or_init(redis::init_cache::<String>).await;
+		},
+		_ => panic!("Cache init error: Please choose either `1` for array cache or `2` for redis cache."),
 	}
 }
 
