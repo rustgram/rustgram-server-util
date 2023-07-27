@@ -5,6 +5,8 @@ pub use local_storage::LocalStorage;
 use rustgram::{Request, Response};
 
 use crate::error::ServerCoreError;
+#[cfg(feature = "static_var")]
+pub use crate::static_var::file_handler::*;
 
 #[async_trait]
 pub trait FileHandler: Send + Sync
