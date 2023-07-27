@@ -1,9 +1,8 @@
-use std::env;
-
 use rustgram_server_util::db::id_handling::create_id;
-use rustgram_server_util::db::{get_in, Db, StringEntity, TransactionData};
+use rustgram_server_util::db::{get_in, StringEntity, TransactionData};
+use rustgram_server_util::static_var::db;
+use rustgram_server_util::static_var::db::db;
 use rustgram_server_util::{get_time, set_params};
-use tokio::sync::OnceCell;
 
 #[derive(Debug)]
 #[cfg_attr(feature = "mysql", derive(rustgram_server_util_macros::MariaDb))]
@@ -13,41 +12,6 @@ pub struct TestData
 	id: String,
 	_name: String,
 	_time: u128,
-}
-
-static DB_CONN: OnceCell<Db> = OnceCell::const_new();
-
-#[cfg(feature = "mysql")]
-async fn init_mariadb() -> Db
-{
-	let user = env::var("DB_USER").unwrap();
-	let pw = env::var("DB_PASS").unwrap();
-	let mysql_host = env::var("DB_HOST").unwrap();
-	let db_name = env::var("DB_NAME").unwrap();
-
-	#[cfg(feature = "mysql")]
-	Db::new(&user, &pw, &mysql_host, &db_name)
-}
-
-#[cfg(feature = "sqlite")]
-async fn init_sqlite() -> Db
-{
-	#[cfg(feature = "sqlite")]
-	Db::new(&env::var("DB_PATH").unwrap())
-}
-
-async fn init_db()
-{
-	#[cfg(feature = "sqlite")]
-	DB_CONN.get_or_init(init_sqlite).await;
-
-	#[cfg(feature = "mysql")]
-	DB_CONN.get_or_init(init_mariadb).await;
-}
-
-fn db<'a>() -> &'a Db
-{
-	DB_CONN.get().unwrap()
 }
 
 #[tokio::test]
@@ -83,7 +47,7 @@ async fn init()
 {
 	dotenv::dotenv().ok();
 
-	init_db().await;
+	db::init_db().await;
 
 	//language=SQL
 	let sql = r"
@@ -199,8 +163,6 @@ async fn test_13_bulk_insert()
 {
 	dotenv::dotenv().ok();
 
-	init_db().await;
-
 	//do this extra because we need the ids later to check if this values are in the db
 	let id1 = create_id();
 	let id2 = create_id();
@@ -251,8 +213,6 @@ async fn test_13_bulk_insert()
 async fn test_14_tx_exec()
 {
 	dotenv::dotenv().ok();
-
-	init_db().await;
 
 	//language=SQLx
 	let sql = "INSERT INTO test (id, name, time) VALUES (?,?,?)";
@@ -313,7 +273,7 @@ async fn clean_up()
 {
 	dotenv::dotenv().ok();
 
-	init_db().await;
+	db::init_db().await;
 
 	//language=SQLx
 	let sql = "DROP TABLE test";
