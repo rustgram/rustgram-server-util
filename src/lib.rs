@@ -47,6 +47,10 @@ pub fn get_time_in_sec() -> Result<u64, error::ServerCoreError>
 #[macro_use]
 extern crate rustgram_server_util_macros;
 
+#[cfg(all(feature = "derive_macro", feature = "mysql"))]
+pub use rustgram_server_util_macros::MariaDb as DB;
+#[cfg(all(feature = "derive_macro", feature = "sqlite"))]
+pub use rustgram_server_util_macros::Sqlite as DB;
 #[cfg(feature = "derive_macro")]
 pub use rustgram_server_util_macros::*;
 

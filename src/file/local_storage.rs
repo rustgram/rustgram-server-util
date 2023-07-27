@@ -1,5 +1,3 @@
-use std::env;
-
 use async_trait::async_trait;
 use futures::StreamExt;
 use hyper::Body;
@@ -140,11 +138,4 @@ impl FileHandler for LocalStorage
 
 		Ok(())
 	}
-}
-
-pub async fn init_storage() -> Box<dyn FileHandler>
-{
-	let path = env::var("LOCAL_STORAGE_PATH").unwrap();
-
-	Box::new(LocalStorage::new(path))
 }
