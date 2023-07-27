@@ -1,7 +1,5 @@
 use rustgram_server_util::db::id_handling::create_id;
-use rustgram_server_util::static_var::db;
-use rustgram_server_util::static_var::db::db;
-use rustgram_server_util::{get_time, set_params};
+use rustgram_server_util::{db, get_time, set_params};
 
 /*
 You can use this derive:
@@ -35,7 +33,7 @@ async fn main()
 	let name = "hello".to_string();
 	let time = get_time().unwrap();
 
-	db().exec(sql, set_params!(id.clone(), name, time.to_string()))
+	db::exec(sql, set_params!(id.clone(), name, time.to_string()))
 		.await
 		.unwrap();
 
@@ -43,7 +41,7 @@ async fn main()
 	//language=SQLx
 	let sql = "SELECT * FROM test WHERE id = ?";
 
-	let test_data: Vec<TestData> = db().query(sql, set_params!(id.clone())).await.unwrap();
+	let test_data: Vec<TestData> = db::query(sql, set_params!(id.clone())).await.unwrap();
 
 	println!("out: {:?}", test_data);
 

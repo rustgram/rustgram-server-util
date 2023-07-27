@@ -1,7 +1,6 @@
 use rustgram_server_util::db::id_handling::create_id;
 use rustgram_server_util::db::{get_in, StringEntity, TransactionData};
-use rustgram_server_util::static_var::db;
-use rustgram_server_util::{get_time, set_params};
+use rustgram_server_util::{db, get_time, set_params};
 
 #[derive(Debug)]
 #[cfg_attr(feature = "mysql", derive(rustgram_server_util_macros::MariaDb))]
