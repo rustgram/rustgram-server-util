@@ -1,7 +1,46 @@
+#[cfg(feature = "mysql")]
+mod mysql;
+#[cfg(feature = "sqlite")]
+mod sqlite;
+
 use std::env;
 
 use tokio::sync::OnceCell;
 
+#[cfg(feature = "mysql")]
+pub use self::mysql::{
+	bulk_insert,
+	exec,
+	exec_non_param,
+	exec_string,
+	exec_string_non_param,
+	exec_transaction,
+	query,
+	query_first,
+	query_first_non_param,
+	query_first_string,
+	query_first_string_non_param,
+	query_non_param,
+	query_string,
+	query_string_non_param,
+};
+#[cfg(feature = "sqlite")]
+pub use self::sqlite::{
+	bulk_insert,
+	exec,
+	exec_non_param,
+	exec_string,
+	exec_string_non_param,
+	exec_transaction,
+	query,
+	query_first,
+	query_first_non_param,
+	query_first_string,
+	query_first_string_non_param,
+	query_non_param,
+	query_string,
+	query_string_non_param,
+};
 use crate::db::Db;
 
 static DB_CONN: OnceCell<Db> = OnceCell::const_new();
