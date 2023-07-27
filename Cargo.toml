@@ -54,6 +54,7 @@ uuid = {version="1.1.2", features= ["v4", "fast-rng"]}
 [dev-dependencies]
 # dotenv vars
 dotenv = "0.15.0"
+rustgram-server-util-macros = {path = "./rustgram-server-util-macros"}
 
 [features]
 default = ["mysql"]
