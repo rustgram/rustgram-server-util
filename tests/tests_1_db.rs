@@ -1,56 +1,18 @@
 use std::env;
 
+use rustgram_server_util::db::id_handling::create_id;
 use rustgram_server_util::db::{get_in, Db, StringEntity, TransactionData};
-use rustgram_server_util::{get_time, set_params, take_or_err};
+use rustgram_server_util::{get_time, set_params};
 use tokio::sync::OnceCell;
-use uuid::Uuid;
 
 #[derive(Debug)]
+#[cfg_attr(feature = "mysql", derive(rustgram_server_util_macros::MariaDb))]
+#[cfg_attr(feature = "sqlite", derive(rustgram_server_util_macros::Sqlite))]
 pub struct TestData
 {
 	id: String,
 	_name: String,
 	_time: u128,
-}
-
-#[cfg(feature = "mysql")]
-impl rustgram_server_util::db::mysql_async_export::prelude::FromRow for TestData
-{
-	fn from_row_opt(
-		mut row: rustgram_server_util::db::mysql_async_export::Row,
-	) -> Result<Self, rustgram_server_util::db::mysql_async_export::FromRowError>
-	where
-		Self: Sized,
-	{
-		Ok(TestData {
-			id: take_or_err!(row, 0, String),
-			_name: take_or_err!(row, 1, String),
-			_time: take_or_err!(row, 2, u128),
-		})
-	}
-}
-
-#[cfg(feature = "sqlite")]
-impl rustgram_server_util::db::FromSqliteRow for TestData
-{
-	fn from_row_opt(row: &rustgram_server_util::db::rusqlite_export::Row) -> Result<Self, rustgram_server_util::db::FormSqliteRowError>
-	where
-		Self: Sized,
-	{
-		//time needs to parse from string to the value
-		let time: String = take_or_err!(row, 2);
-		let time: u128 = time.parse().map_err(|e| {
-			rustgram_server_util::db::FormSqliteRowError {
-				msg: format!("err in db fetch: {:?}", e),
-			}
-		})?;
-
-		Ok(TestData {
-			id: take_or_err!(row, 0),
-			_name: take_or_err!(row, 1),
-			_time: time,
-		})
-	}
 }
 
 static DB_CONN: OnceCell<Db> = OnceCell::const_new();
@@ -81,6 +43,11 @@ async fn init_db()
 
 	#[cfg(feature = "mysql")]
 	DB_CONN.get_or_init(init_mariadb).await;
+}
+
+fn db<'a>() -> &'a Db
+{
+	DB_CONN.get().unwrap()
 }
 
 #[tokio::test]
@@ -126,7 +93,7 @@ CREATE table IF NOT EXISTS test (
     `time` text DEFAULT NULL
 )";
 
-	DB_CONN.get().unwrap().exec_non_param(sql).await.unwrap();
+	db().exec_non_param(sql).await.unwrap();
 
 	#[cfg(feature = "mysql")]
 	//language=SQL
@@ -135,12 +102,7 @@ CREATE table IF NOT EXISTS test (
 	#[cfg(feature = "sqlite")]
 	let sql = "SELECT name FROM sqlite_master WHERE type='table' AND name LIKE 'test'";
 
-	let res: Option<StringEntity> = DB_CONN
-		.get()
-		.unwrap()
-		.query_first_non_param(sql)
-		.await
-		.unwrap();
+	let res: Option<StringEntity> = db().query_first_non_param(sql).await.unwrap();
 
 	assert!(res.is_some());
 }
@@ -152,14 +114,11 @@ async fn test_10_db_insert_and_fetch()
 	//language=SQLx
 	let sql = "INSERT INTO test (id, name, time) VALUES (?,?,?)";
 
-	let id = Uuid::new_v4().to_string();
+	let id = create_id();
 	let name = "hello".to_string();
 	let time = get_time().unwrap();
 
-	DB_CONN
-		.get()
-		.unwrap()
-		.exec(sql, set_params!(id.clone(), name, time.to_string()))
+	db().exec(sql, set_params!(id.clone(), name, time.to_string()))
 		.await
 		.unwrap();
 
@@ -167,12 +126,7 @@ async fn test_10_db_insert_and_fetch()
 	//language=SQLx
 	let sql = "SELECT * FROM test WHERE id = ?";
 
-	let test_data: Vec<TestData> = DB_CONN
-		.get()
-		.unwrap()
-		.query(sql, set_params!(id.clone()))
-		.await
-		.unwrap();
+	let test_data: Vec<TestData> = db().query(sql, set_params!(id.clone())).await.unwrap();
 
 	println!("out: {:?}", test_data);
 
@@ -180,9 +134,7 @@ async fn test_10_db_insert_and_fetch()
 	assert_eq!(test_data[0].id, id);
 
 	//test query first
-	let test_datum: Option<TestData> = DB_CONN
-		.get()
-		.unwrap()
+	let test_datum: Option<TestData> = db()
 		.query_first(sql, set_params!(id.clone()))
 		.await
 		.unwrap();
@@ -190,9 +142,7 @@ async fn test_10_db_insert_and_fetch()
 	assert_eq!(test_datum.unwrap().id, id);
 
 	//test without result
-	let test_datum: Option<TestData> = DB_CONN
-		.get()
-		.unwrap()
+	let test_datum: Option<TestData> = db()
 		.query_first(sql, set_params!(id.clone() + "123"))
 		.await
 		.unwrap();
@@ -210,28 +160,22 @@ async fn test_12_insert_and_fetch_with_get_ins()
 	//language=SQLx
 	let sql = "INSERT INTO test (id, name, time) VALUES (?,?,?)";
 
-	let id1 = Uuid::new_v4().to_string();
+	let id1 = create_id();
 	let name1 = "hello1".to_string();
 	let time1 = get_time().unwrap();
 
-	DB_CONN
-		.get()
-		.unwrap()
-		.exec(sql, set_params!(id1.clone(), name1, time1.to_string()))
+	db().exec(sql, set_params!(id1.clone(), name1, time1.to_string()))
 		.await
 		.unwrap();
 
 	//language=SQLx
 	let sql = "INSERT INTO test (id, name, time) VALUES (?,?,?)";
 
-	let id2 = Uuid::new_v4().to_string();
+	let id2 = create_id();
 	let name2 = "hello2".to_string();
 	let time2 = get_time().unwrap();
 
-	DB_CONN
-		.get()
-		.unwrap()
-		.exec(sql, set_params!(id2.clone(), name2, time2.to_string()))
+	db().exec(sql, set_params!(id2.clone(), name2, time2.to_string()))
 		.await
 		.unwrap();
 
@@ -242,12 +186,7 @@ async fn test_12_insert_and_fetch_with_get_ins()
 	//language=SQLx
 	let sql = format!("SELECT * FROM test WHERE id IN ({}) ORDER BY name", ins);
 
-	let test_data: Vec<TestData> = DB_CONN
-		.get()
-		.unwrap()
-		.query_string(sql, params)
-		.await
-		.unwrap();
+	let test_data: Vec<TestData> = db().query_string(sql, params).await.unwrap();
 
 	println!("out get in: {:?}", test_data);
 
@@ -263,9 +202,9 @@ async fn test_13_bulk_insert()
 	init_db().await;
 
 	//do this extra because we need the ids later to check if this values are in the db
-	let id1 = Uuid::new_v4().to_string();
-	let id2 = Uuid::new_v4().to_string();
-	let id3 = Uuid::new_v4().to_string();
+	let id1 = create_id();
+	let id2 = create_id();
+	let id3 = create_id();
 
 	let t1 = TestData {
 		id: id1.to_string(),
@@ -285,14 +224,11 @@ async fn test_13_bulk_insert()
 		_time: get_time().unwrap(),
 	};
 
-	DB_CONN
-		.get()
-		.unwrap()
-		.bulk_insert(false, "test", &["id", "name", "time"], vec![t1, t2, t3], |ob| {
-			set_params!(ob.id, ob._name, ob._time.to_string())
-		})
-		.await
-		.unwrap();
+	db().bulk_insert(false, "test", &["id", "name", "time"], vec![t1, t2, t3], |ob| {
+		set_params!(ob.id, ob._name, ob._time.to_string())
+	})
+	.await
+	.unwrap();
 
 	//check if the values are in the db
 	let params = vec![id1.clone(), id2.clone(), id3.clone()];
@@ -302,12 +238,7 @@ async fn test_13_bulk_insert()
 	//language=SQLx
 	let sql = format!("SELECT * FROM test WHERE id IN ({}) ORDER BY name", ins);
 
-	let test_data: Vec<TestData> = DB_CONN
-		.get()
-		.unwrap()
-		.query_string(sql, params)
-		.await
-		.unwrap();
+	let test_data: Vec<TestData> = db().query_string(sql, params).await.unwrap();
 
 	println!("out bulk insert: {:?}", test_data);
 
@@ -326,43 +257,40 @@ async fn test_14_tx_exec()
 	//language=SQLx
 	let sql = "INSERT INTO test (id, name, time) VALUES (?,?,?)";
 
-	let id1 = Uuid::new_v4().to_string();
+	let id1 = create_id();
 	let name1 = "hello1".to_string();
 	let time1 = get_time().unwrap();
 
 	//language=SQLx
 	let sql2 = "INSERT INTO test (id, name, time) VALUES (?,?,?)";
 
-	let id2 = Uuid::new_v4().to_string();
+	let id2 = create_id();
 	let name2 = "hello2".to_string();
 	let time2 = get_time().unwrap();
 
 	//language=SQLx
 	let sql3 = "INSERT INTO test (id, name, time) VALUES (?,?,?)";
 
-	let id3 = Uuid::new_v4().to_string();
+	let id3 = create_id();
 	let name3 = "hello3".to_string();
 	let time3 = get_time().unwrap();
 
-	DB_CONN
-		.get()
-		.unwrap()
-		.exec_transaction(vec![
-			TransactionData {
-				sql,
-				params: set_params!(id1.clone(), name1, time1.to_string()),
-			},
-			TransactionData {
-				sql: sql2,
-				params: set_params!(id2.clone(), name2, time2.to_string()),
-			},
-			TransactionData {
-				sql: sql3,
-				params: set_params!(id3.clone(), name3, time3.to_string()),
-			},
-		])
-		.await
-		.unwrap();
+	db().exec_transaction(vec![
+		TransactionData {
+			sql,
+			params: set_params!(id1.clone(), name1, time1.to_string()),
+		},
+		TransactionData {
+			sql: sql2,
+			params: set_params!(id2.clone(), name2, time2.to_string()),
+		},
+		TransactionData {
+			sql: sql3,
+			params: set_params!(id3.clone(), name3, time3.to_string()),
+		},
+	])
+	.await
+	.unwrap();
 
 	let params = vec![id1.clone(), id2.clone(), id3.clone()];
 
@@ -371,12 +299,7 @@ async fn test_14_tx_exec()
 	//language=SQLx
 	let sql = format!("SELECT * FROM test WHERE id IN ({}) ORDER BY name", ins);
 
-	let test_data: Vec<TestData> = DB_CONN
-		.get()
-		.unwrap()
-		.query_string(sql, params)
-		.await
-		.unwrap();
+	let test_data: Vec<TestData> = db().query_string(sql, params).await.unwrap();
 
 	println!("out get in: {:?}", test_data);
 
@@ -395,7 +318,7 @@ async fn clean_up()
 	//language=SQLx
 	let sql = "DROP TABLE test";
 
-	DB_CONN.get().unwrap().exec_non_param(sql).await.unwrap();
+	db().exec_non_param(sql).await.unwrap();
 
 	#[cfg(feature = "mysql")]
 	//language=SQL
@@ -404,12 +327,7 @@ async fn clean_up()
 	#[cfg(feature = "sqlite")]
 	let sql = "SELECT name FROM sqlite_master WHERE type='table' AND name LIKE 'test'";
 
-	let res: Option<StringEntity> = DB_CONN
-		.get()
-		.unwrap()
-		.query_first_non_param(sql)
-		.await
-		.unwrap();
+	let res: Option<StringEntity> = db().query_first_non_param(sql).await.unwrap();
 
 	assert!(res.is_none());
 }
