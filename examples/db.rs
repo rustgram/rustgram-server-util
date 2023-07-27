@@ -7,9 +7,18 @@ use tokio::sync::OnceCell;
 
 static DB_CONN: OnceCell<Db> = OnceCell::const_new();
 
-#[derive(Debug)]
-#[cfg_attr(feature = "mysql", derive(rustgram_server_util::MariaDb))]
-#[cfg_attr(feature = "sqlite", derive(rustgram_server_util::Sqlite))]
+/*
+You can use this derive:
+#[derive(rustgram_server_util::DB)]
+
+instead of
+#[cfg_attr(feature = "mysql", derive(rustgram_server_util_macros::MariaDb))]
+#[cfg_attr(feature = "sqlite", derive(rustgram_server_util_macros::Sqlite))]
+
+when using the derive_macro feature
+ */
+
+#[derive(Debug, rustgram_server_util::DB)]
 pub struct TestData
 {
 	id: String,
