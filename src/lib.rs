@@ -9,6 +9,8 @@ pub mod file;
 pub mod input_helper;
 pub mod res;
 pub mod url_helper;
+#[cfg(feature = "static_var")]
+pub mod static_var;
 
 pub fn get_time() -> Result<u128, error::ServerCoreError>
 {
