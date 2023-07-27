@@ -29,6 +29,14 @@ impl<T: 'static + Clone> ArrayCache<T>
 {
 	pub fn new() -> Self
 	{
+		Self::default()
+	}
+}
+
+impl<T: 'static + Clone> Default for ArrayCache<T>
+{
+	fn default() -> Self
+	{
 		Self {
 			cache: RwLock::new(HashMap::<String, CacheData<T>>::new()),
 		}
@@ -86,17 +94,4 @@ impl<T: 'static + Clone + Send + Sync> Cache<T> for ArrayCache<T>
 
 		Ok(())
 	}
-}
-
-/**
-Init th cache as async
-
-Must be async for RwLock from tokio.
-*/
-pub async fn init_cache<T: 'static + Clone + Send + Sync>() -> Box<dyn Cache<T>>
-{
-	#[cfg(debug_assertions)]
-	println!("init array cache");
-
-	Box::new(ArrayCache::new())
 }
