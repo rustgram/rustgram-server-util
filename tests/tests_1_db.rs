@@ -1,9 +1,7 @@
-use std::env;
-
 use rustgram_server_util::db::id_handling::create_id;
-use rustgram_server_util::db::{get_in, Db, StringEntity, TransactionData};
+use rustgram_server_util::db::{get_in, StringEntity, TransactionData};
+use rustgram_server_util::static_var::db;
 use rustgram_server_util::{get_time, set_params};
-use tokio::sync::OnceCell;
 
 #[derive(Debug)]
 #[cfg_attr(feature = "mysql", derive(rustgram_server_util_macros::MariaDb))]
@@ -13,41 +11,6 @@ pub struct TestData
 	id: String,
 	_name: String,
 	_time: u128,
-}
-
-static DB_CONN: OnceCell<Db> = OnceCell::const_new();
-
-#[cfg(feature = "mysql")]
-async fn init_mariadb() -> Db
-{
-	let user = env::var("DB_USER").unwrap();
-	let pw = env::var("DB_PASS").unwrap();
-	let mysql_host = env::var("DB_HOST").unwrap();
-	let db_name = env::var("DB_NAME").unwrap();
-
-	#[cfg(feature = "mysql")]
-	Db::new(&user, &pw, &mysql_host, &db_name)
-}
-
-#[cfg(feature = "sqlite")]
-async fn init_sqlite() -> Db
-{
-	#[cfg(feature = "sqlite")]
-	Db::new(&env::var("DB_PATH").unwrap())
-}
-
-async fn init_db()
-{
-	#[cfg(feature = "sqlite")]
-	DB_CONN.get_or_init(init_sqlite).await;
-
-	#[cfg(feature = "mysql")]
-	DB_CONN.get_or_init(init_mariadb).await;
-}
-
-fn db<'a>() -> &'a Db
-{
-	DB_CONN.get().unwrap()
 }
 
 #[tokio::test]
@@ -83,7 +46,7 @@ async fn init()
 {
 	dotenv::dotenv().ok();
 
-	init_db().await;
+	db::init_db().await;
 
 	//language=SQL
 	let sql = r"
@@ -93,7 +56,7 @@ CREATE table IF NOT EXISTS test (
     `time` text DEFAULT NULL
 )";
 
-	db().exec_non_param(sql).await.unwrap();
+	db::exec_non_param(sql).await.unwrap();
 
 	#[cfg(feature = "mysql")]
 	//language=SQL
@@ -102,7 +65,7 @@ CREATE table IF NOT EXISTS test (
 	#[cfg(feature = "sqlite")]
 	let sql = "SELECT name FROM sqlite_master WHERE type='table' AND name LIKE 'test'";
 
-	let res: Option<StringEntity> = db().query_first_non_param(sql).await.unwrap();
+	let res: Option<StringEntity> = db::query_first_non_param(sql).await.unwrap();
 
 	assert!(res.is_some());
 }
@@ -118,7 +81,7 @@ async fn test_10_db_insert_and_fetch()
 	let name = "hello".to_string();
 	let time = get_time().unwrap();
 
-	db().exec(sql, set_params!(id.clone(), name, time.to_string()))
+	db::exec(sql, set_params!(id.clone(), name, time.to_string()))
 		.await
 		.unwrap();
 
@@ -126,7 +89,7 @@ async fn test_10_db_insert_and_fetch()
 	//language=SQLx
 	let sql = "SELECT * FROM test WHERE id = ?";
 
-	let test_data: Vec<TestData> = db().query(sql, set_params!(id.clone())).await.unwrap();
+	let test_data: Vec<TestData> = db::query(sql, set_params!(id.clone())).await.unwrap();
 
 	println!("out: {:?}", test_data);
 
@@ -134,16 +97,12 @@ async fn test_10_db_insert_and_fetch()
 	assert_eq!(test_data[0].id, id);
 
 	//test query first
-	let test_datum: Option<TestData> = db()
-		.query_first(sql, set_params!(id.clone()))
-		.await
-		.unwrap();
+	let test_datum: Option<TestData> = db::query_first(sql, set_params!(id.clone())).await.unwrap();
 
 	assert_eq!(test_datum.unwrap().id, id);
 
 	//test without result
-	let test_datum: Option<TestData> = db()
-		.query_first(sql, set_params!(id.clone() + "123"))
+	let test_datum: Option<TestData> = db::query_first(sql, set_params!(id.clone() + "123"))
 		.await
 		.unwrap();
 
@@ -164,7 +123,7 @@ async fn test_12_insert_and_fetch_with_get_ins()
 	let name1 = "hello1".to_string();
 	let time1 = get_time().unwrap();
 
-	db().exec(sql, set_params!(id1.clone(), name1, time1.to_string()))
+	db::exec(sql, set_params!(id1.clone(), name1, time1.to_string()))
 		.await
 		.unwrap();
 
@@ -175,7 +134,7 @@ async fn test_12_insert_and_fetch_with_get_ins()
 	let name2 = "hello2".to_string();
 	let time2 = get_time().unwrap();
 
-	db().exec(sql, set_params!(id2.clone(), name2, time2.to_string()))
+	db::exec(sql, set_params!(id2.clone(), name2, time2.to_string()))
 		.await
 		.unwrap();
 
@@ -186,7 +145,7 @@ async fn test_12_insert_and_fetch_with_get_ins()
 	//language=SQLx
 	let sql = format!("SELECT * FROM test WHERE id IN ({}) ORDER BY name", ins);
 
-	let test_data: Vec<TestData> = db().query_string(sql, params).await.unwrap();
+	let test_data: Vec<TestData> = db::query_string(sql, params).await.unwrap();
 
 	println!("out get in: {:?}", test_data);
 
@@ -198,8 +157,6 @@ async fn test_12_insert_and_fetch_with_get_ins()
 async fn test_13_bulk_insert()
 {
 	dotenv::dotenv().ok();
-
-	init_db().await;
 
 	//do this extra because we need the ids later to check if this values are in the db
 	let id1 = create_id();
@@ -224,7 +181,7 @@ async fn test_13_bulk_insert()
 		_time: get_time().unwrap(),
 	};
 
-	db().bulk_insert(false, "test", &["id", "name", "time"], vec![t1, t2, t3], |ob| {
+	db::bulk_insert(false, "test", &["id", "name", "time"], vec![t1, t2, t3], |ob| {
 		set_params!(ob.id, ob._name, ob._time.to_string())
 	})
 	.await
@@ -238,7 +195,7 @@ async fn test_13_bulk_insert()
 	//language=SQLx
 	let sql = format!("SELECT * FROM test WHERE id IN ({}) ORDER BY name", ins);
 
-	let test_data: Vec<TestData> = db().query_string(sql, params).await.unwrap();
+	let test_data: Vec<TestData> = db::query_string(sql, params).await.unwrap();
 
 	println!("out bulk insert: {:?}", test_data);
 
@@ -251,8 +208,6 @@ async fn test_13_bulk_insert()
 async fn test_14_tx_exec()
 {
 	dotenv::dotenv().ok();
-
-	init_db().await;
 
 	//language=SQLx
 	let sql = "INSERT INTO test (id, name, time) VALUES (?,?,?)";
@@ -275,7 +230,7 @@ async fn test_14_tx_exec()
 	let name3 = "hello3".to_string();
 	let time3 = get_time().unwrap();
 
-	db().exec_transaction(vec![
+	db::exec_transaction(vec![
 		TransactionData {
 			sql,
 			params: set_params!(id1.clone(), name1, time1.to_string()),
@@ -299,7 +254,7 @@ async fn test_14_tx_exec()
 	//language=SQLx
 	let sql = format!("SELECT * FROM test WHERE id IN ({}) ORDER BY name", ins);
 
-	let test_data: Vec<TestData> = db().query_string(sql, params).await.unwrap();
+	let test_data: Vec<TestData> = db::query_string(sql, params).await.unwrap();
 
 	println!("out get in: {:?}", test_data);
 
@@ -313,12 +268,12 @@ async fn clean_up()
 {
 	dotenv::dotenv().ok();
 
-	init_db().await;
+	db::init_db().await;
 
 	//language=SQLx
 	let sql = "DROP TABLE test";
 
-	db().exec_non_param(sql).await.unwrap();
+	db::exec_non_param(sql).await.unwrap();
 
 	#[cfg(feature = "mysql")]
 	//language=SQL
@@ -327,7 +282,7 @@ async fn clean_up()
 	#[cfg(feature = "sqlite")]
 	let sql = "SELECT name FROM sqlite_master WHERE type='table' AND name LIKE 'test'";
 
-	let res: Option<StringEntity> = db().query_first_non_param(sql).await.unwrap();
+	let res: Option<StringEntity> = db::query_first_non_param(sql).await.unwrap();
 
 	assert!(res.is_none());
 }

@@ -435,18 +435,18 @@ impl Sqlite
 		cols: &'static [&'static str],
 		objects: Vec<T>, //must be pass by value because we need static lifetime here for the deadpool interact
 		fun: F,
-	) -> Result<usize, ServerCoreError>
+	) -> Result<(), ServerCoreError>
 	where
 		F: Fn(T) -> Vec<rusqlite::types::Value>,
 	{
 		let conn = self.get_conn().await?;
 
-		let res = conn
+		let _res = conn
 			.interact(move |conn| bulk_insert_sync(conn, ignore, table, cols, objects, fun))
 			.await
 			.map_err(|e| db_bulk_insert_err(&e))??;
 
-		Ok(res)
+		Ok(())
 	}
 }
 
