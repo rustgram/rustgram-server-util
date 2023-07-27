@@ -9,6 +9,9 @@ mod redis_cache;
 pub use array_cache::ArrayCache;
 pub use redis_cache::RedisCache;
 
+#[cfg(feature = "static_var")]
+pub use crate::static_var::cache::*;
+
 #[async_trait]
 pub trait Cache<T: 'static + Clone>: Send + Sync
 {
