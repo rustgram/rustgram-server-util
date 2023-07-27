@@ -1,7 +1,5 @@
 use std::error::Error;
 
-use tokio::sync::OnceCell;
-
 use crate::error::{CoreErrorCodes, ServerCoreError, ServerErrorConstructor};
 
 pub mod id_handling;
@@ -18,64 +16,15 @@ pub use mysql_common as mysql_common_export;
 pub use rusqlite as rusqlite_export;
 
 #[cfg(feature = "mysql")]
-pub use self::mariadb::{
-	bulk_insert,
-	exec,
-	exec_non_param,
-	exec_string,
-	exec_string_non_param,
-	exec_transaction,
-	query,
-	query_first,
-	query_first_non_param,
-	query_first_string,
-	query_first_string_non_param,
-	query_non_param,
-	query_string,
-	query_string_non_param,
-	TransactionData,
-};
+pub use self::mariadb::{Mariadb as Db, TransactionData};
 #[cfg(feature = "sqlite")]
-pub use self::sqlite::{
-	bulk_insert,
-	exec,
-	exec_non_param,
-	exec_string,
-	exec_string_non_param,
-	exec_transaction,
-	query,
-	query_first,
-	query_first_non_param,
-	query_first_string,
-	query_first_string_non_param,
-	query_non_param,
-	query_string,
-	query_string_non_param,
-	FormSqliteRowError,
-	FromSqliteRow,
-	TransactionData,
-};
-
-#[cfg(feature = "sqlite")]
-static SQLITE_DB_CONN: OnceCell<deadpool_sqlite::Pool> = OnceCell::const_new();
-
-#[cfg(feature = "mysql")]
-static MARIA_DB_COMM: OnceCell<mysql_async::Pool> = OnceCell::const_new();
+pub use self::sqlite::{FormSqliteRowError, FromSqliteRow, Sqlite as Db, TransactionData};
 
 #[cfg(feature = "mysql")]
 pub type Params = mysql_common::params::Params;
 
 #[cfg(feature = "sqlite")]
 pub type Params = Vec<rusqlite::types::Value>;
-
-pub async fn init_db()
-{
-	#[cfg(feature = "sqlite")]
-	SQLITE_DB_CONN.get_or_init(sqlite::create_db).await;
-
-	#[cfg(feature = "mysql")]
-	MARIA_DB_COMM.get_or_init(mariadb::create_db).await;
-}
 
 #[allow(clippy::useless_format)]
 /**
