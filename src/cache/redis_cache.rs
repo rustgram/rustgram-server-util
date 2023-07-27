@@ -1,4 +1,3 @@
-use std::env;
 use std::marker::PhantomData;
 
 use async_trait::async_trait;
@@ -27,10 +26,8 @@ pub struct RedisCache<T: 'static + Clone>
 
 impl<T: 'static + Clone> RedisCache<T>
 {
-	pub fn new() -> Self
+	pub fn new(redis_url: &str) -> Self
 	{
-		let redis_url = env::var("REDIS_URL").unwrap_or_else(|_| "redis://127.0.0.1/".to_string());
-
 		let client = Client::open(redis_url).unwrap();
 
 		Self {
@@ -90,12 +87,4 @@ impl<T: 'static + Clone + Send + Sync + FromRedisValue + ToRedisArgs> Cache<T> f
 
 		Ok(())
 	}
-}
-
-pub async fn init_cache<T: 'static + Clone + Send + Sync + FromRedisValue + ToRedisArgs>() -> Box<dyn Cache<T>>
-{
-	#[cfg(debug_assertions)]
-	println!("init redis");
-
-	Box::new(RedisCache::new())
 }
