@@ -18,8 +18,6 @@ hyper = { version = "^0.14", features = ["full"] }
 tokio = { version = "1", features = ["full"] }
 tokio-util = "0.7.2"
 
-# dotenv vars
-dotenv = "0.15.0"
 # for caching trait
 async-trait = "0.1.56"
 
@@ -54,7 +52,8 @@ redis = {version="0.23.0", features = ["tokio-rustls-comp"]}
 uuid = {version="1.1.2", features= ["v4", "fast-rng"]}
 
 [dev-dependencies]
-
+# dotenv vars
+dotenv = "0.15.0"
 
 [features]
 default = ["mysql"]
