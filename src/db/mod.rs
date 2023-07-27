@@ -19,6 +19,8 @@ pub use rusqlite as rusqlite_export;
 pub use self::mariadb::{Mariadb as Db, TransactionData};
 #[cfg(feature = "sqlite")]
 pub use self::sqlite::{FormSqliteRowError, FromSqliteRow, Sqlite as Db, TransactionData};
+#[cfg(feature = "static_var")]
+pub use crate::static_var::db::*;
 
 #[cfg(feature = "mysql")]
 pub type Params = mysql_common::params::Params;
