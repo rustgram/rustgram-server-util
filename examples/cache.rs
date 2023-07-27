@@ -1,4 +1,4 @@
-use rustgram_server_util::static_var::cache;
+use rustgram_server_util::cache;
 
 #[tokio::main]
 async fn main()

@@ -1,9 +1,9 @@
-use rustgram_server_util::static_var::file_handler;
+use rustgram_server_util::file::init_storage;
 
 #[tokio::main]
 async fn main()
 {
 	dotenv::dotenv().ok();
 
-	file_handler::init_storage().await;
+	init_storage().await;
 }

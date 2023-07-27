@@ -1,6 +1,6 @@
 use std::time::Duration;
 
-use rustgram_server_util::static_var::cache;
+use rustgram_server_util::cache;
 
 const KEY: &str = "test_key";
 const VALUE: &str = "test_value";
