@@ -104,7 +104,7 @@ transform the values like into_params_impl from mysql_common::params
 #[macro_export]
 macro_rules! set_params {
 	($( $param:expr ),+ $(,)?) => {{
-		 rustgram_server_util::db::mysql_common_export::params::Params::Positional(vec![
+		 $crate::db::mysql_common_export::params::Params::Positional(vec![
 			 $($param.into(),)*
          ])
 	}};
@@ -114,13 +114,13 @@ macro_rules! set_params {
 #[macro_export]
 macro_rules! set_params_vec {
 	($vec:expr) => {{
-		let mut out: Vec<rustgram_server_util::db::mysql_common_export::value::Value> = Vec::with_capacity($vec.len());
+		let mut out: Vec<$crate::db::mysql_common_export::value::Value> = Vec::with_capacity($vec.len());
 
 		for inp in $vec {
 			out.push(inp.0.into());
 		}
 
-		rustgram_server_util::db::mysql_common_export::params::Params::Positional(out)
+		$crate::db::mysql_common_export::params::Params::Positional(out)
 	}};
 }
 
@@ -128,13 +128,13 @@ macro_rules! set_params_vec {
 #[macro_export]
 macro_rules! set_params_vec_outer {
 	($vec:expr) => {{
-		let mut out: Vec<rustgram_server_util::db::mysql_common_export::value::Value> = Vec::with_capacity($vec.len());
+		let mut out: Vec<$crate::db::mysql_common_export::value::Value> = Vec::with_capacity($vec.len());
 
 		for inp in $vec {
 			out.push(inp.into());
 		}
 
-		rustgram_server_util::db::mysql_common_export::params::Params::Positional(out)
+		$crate::db::mysql_common_export::params::Params::Positional(out)
 	}};
 }
 
@@ -147,7 +147,7 @@ macro_rules! set_params_vec_outer {
 macro_rules! set_params {
 	($( $param:expr ),+ $(,)?) => {
 		vec![
-			$(rustgram_server_util::db::rusqlite_export::types::Value::from($param),)*
+			$($crate::db::rusqlite_export::types::Value::from($param),)*
 		]
 	};
 }
@@ -159,7 +159,7 @@ macro_rules! set_params_vec {
 		let mut tmp = Vec::with_capacity($vec.len());
 
 		for inp in $vec {
-			tmp.push(rustgram_server_util::db::rusqlite_export::types::Value::from(inp.0))
+			tmp.push($crate::db::rusqlite_export::types::Value::from(inp.0))
 		}
 
 		tmp
@@ -173,7 +173,7 @@ macro_rules! set_params_vec_outer {
 		let mut tmp = Vec::with_capacity($vec.len());
 
 		for inp in $vec {
-			tmp.push(rustgram_server_util::db::rusqlite_export::types::Value::from(inp))
+			tmp.push($crate::db::rusqlite_export::types::Value::from(inp))
 		}
 
 		tmp

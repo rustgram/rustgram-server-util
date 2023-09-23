@@ -11,12 +11,12 @@ macro_rules! take_or_err {
 			Some(value) => {
 				match value {
 					Ok(ir) => ir,
-					Err(rustgram_server_util::db::mysql_async_export::FromValueError(_value)) => {
-						return Err(rustgram_server_util::db::mysql_async_export::FromRowError($row));
+					Err($crate::db::mysql_async_export::FromValueError(_value)) => {
+						return Err($crate::db::mysql_async_export::FromRowError($row));
 					},
 				}
 			},
-			None => return Err(rustgram_server_util::db::mysql_async_export::FromRowError($row)),
+			None => return Err($crate::db::mysql_async_export::FromRowError($row)),
 		}
 	};
 	($row:expr, $index:expr, Option<$t:ident>) => {
@@ -24,12 +24,12 @@ macro_rules! take_or_err {
 			Some(value) => {
 				match value {
 					Ok(ir) => ir,
-					Err(rustgram_server_util::db::mysql_async_export::FromValueError(_value)) => {
-						return Err(rustgram_server_util::db::mysql_async_export::FromRowError($row));
+					Err($crate::db::mysql_async_export::FromValueError(_value)) => {
+						return Err($crate::db::mysql_async_export::FromRowError($row));
 					},
 				}
 			},
-			None => return Err(rustgram_server_util::db::mysql_async_export::FromRowError($row)),
+			None => return Err($crate::db::mysql_async_export::FromRowError($row)),
 		}
 	};
 }
@@ -41,12 +41,12 @@ macro_rules! take_or_err_opt {
 			Some(value) => {
 				match value {
 					Ok(ir) => ir,
-					Err(rustgram_server_util::db::mysql_async_export::FromValueError(_value)) => {
-						return Err(rustgram_server_util::db::mysql_async_export::FromRowError($row));
+					Err($crate::db::mysql_async_export::FromValueError(_value)) => {
+						return Err($crate::db::mysql_async_export::FromRowError($row));
 					},
 				}
 			},
-			None => return Err(rustgram_server_util::db::mysql_async_export::FromRowError($row)),
+			None => return Err($crate::db::mysql_async_export::FromRowError($row)),
 		}
 	};
 }

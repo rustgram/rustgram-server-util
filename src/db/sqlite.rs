@@ -13,7 +13,7 @@ macro_rules! take_or_err {
 		match $row.get($index) {
 			Ok(v) => v,
 			Err(e) => {
-				return Err(rustgram_server_util::db::FormSqliteRowError {
+				return Err($crate::db::FormSqliteRowError {
 					msg: format!("{:?}", e),
 				})
 			},
@@ -30,7 +30,7 @@ macro_rules! take_or_err_u128 {
 				let str: u128 = match str.parse() {
 					Ok(v) => v,
 					Err(e) => {
-						return Err(rustgram_server_util::db::FormSqliteRowError {
+						return Err($crate::db::FormSqliteRowError {
 							msg: format!("err in db fetch: {:?}", e),
 						})
 					},
@@ -38,7 +38,7 @@ macro_rules! take_or_err_u128 {
 				str
 			},
 			Err(e) => {
-				return Err(rustgram_server_util::db::FormSqliteRowError {
+				return Err($crate::db::FormSqliteRowError {
 					msg: format!("{:?}", e),
 				})
 			},
@@ -55,7 +55,7 @@ macro_rules! take_or_err_usize {
 				let str: usize = match str.parse() {
 					Ok(v) => v,
 					Err(e) => {
-						return Err(rustgram_server_util::db::FormSqliteRowError {
+						return Err($crate::db::FormSqliteRowError {
 							msg: format!("err in db fetch: {:?}", e),
 						})
 					},
@@ -63,7 +63,7 @@ macro_rules! take_or_err_usize {
 				str
 			},
 			Err(e) => {
-				return Err(rustgram_server_util::db::FormSqliteRowError {
+				return Err($crate::db::FormSqliteRowError {
 					msg: format!("{:?}", e),
 				})
 			},
