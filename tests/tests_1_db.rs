@@ -1,4 +1,4 @@
-use rustgram_server_util::db::id_handling::create_id;
+use rustgram_server_util::db::id_handling::{check_id_format, create_id};
 use rustgram_server_util::db::{get_in, StringEntity, TransactionData};
 use rustgram_server_util::{db, get_time, set_params};
 
@@ -96,9 +96,14 @@ async fn test_10_db_insert_and_fetch()
 	assert_eq!(test_data[0].id, id);
 
 	//test query first
-	let test_datum: Option<TestData> = db::query_first(sql, set_params!(id.clone())).await.unwrap();
+	let test_datum: TestData = db::query_first(sql, set_params!(id.clone()))
+		.await
+		.unwrap()
+		.unwrap();
 
-	assert_eq!(test_datum.unwrap().id, id);
+	assert_eq!(test_datum.id, id);
+
+	assert!(check_id_format(&test_datum.id).is_ok());
 
 	//test without result
 	let test_datum: Option<TestData> = db::query_first(sql, set_params!(id.clone() + "123"))
