@@ -1,5 +1,5 @@
 use mysql_async::prelude::{FromRow, Queryable};
-use mysql_async::{Params, Pool, TxOpts};
+use mysql_async::{OptsBuilder, Params, Pool, TxOpts};
 
 use crate::db::{db_bulk_insert_err, db_exec_err, db_query_err, db_tx_err};
 use crate::error::{CoreErrorCodes, ServerCoreError, ServerErrorConstructor};
@@ -66,13 +66,28 @@ pub struct Mariadb
 
 impl Mariadb
 {
-	pub fn new(user: &str, pw: &str, mysql_host: &str, db_name: &str) -> Self
+	pub fn new(user: &str, pw: &str, mysql_host: &str, db_name: &str, db_port: Option<u16>) -> Self
 	{
 		#[cfg(debug_assertions)]
 		println!("init mariadb");
 
+		let opts = if let Some(port) = db_port {
+			OptsBuilder::default()
+				.ip_or_hostname(mysql_host)
+				.db_name(Some(db_name))
+				.user(Some(user))
+				.pass(Some(pw))
+				.tcp_port(port)
+		} else {
+			OptsBuilder::default()
+				.ip_or_hostname(mysql_host)
+				.db_name(Some(db_name))
+				.user(Some(user))
+				.pass(Some(pw))
+		};
+
 		Self {
-			pool: Pool::new(format!("mysql://{}:{}@{}/{}", user, pw, mysql_host, db_name).as_str()),
+			pool: Pool::new(opts),
 		}
 	}
 

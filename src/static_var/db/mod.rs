@@ -52,9 +52,16 @@ async fn init_mariadb() -> Db
 	let pw = env::var("DB_PASS").unwrap();
 	let mysql_host = env::var("DB_HOST").unwrap();
 	let db_name = env::var("DB_NAME").unwrap();
+	let db_port = env::var("DB_PORT").ok(); //option
 
 	#[cfg(feature = "mysql")]
-	Db::new(&user, &pw, &mysql_host, &db_name)
+	Db::new(
+		&user,
+		&pw,
+		&mysql_host,
+		&db_name,
+		db_port.map(|o| if o.is_empty() { 3306 } else { o.parse().unwrap() }),
+	)
 }
 
 #[cfg(feature = "sqlite")]
