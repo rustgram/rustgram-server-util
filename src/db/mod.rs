@@ -2,6 +2,7 @@ use std::error::Error;
 
 use crate::error::{CoreErrorCodes, ServerCoreError, ServerErrorConstructor};
 
+pub mod custom_types;
 pub mod id_handling;
 #[cfg(feature = "mysql")]
 mod mariadb;
