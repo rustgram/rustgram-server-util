@@ -37,6 +37,8 @@ pub enum CoreErrorCodes
 	FileDownload,
 
 	RedisError,
+
+	DateStrParse,
 }
 
 impl ServerErrorCodes for CoreErrorCodes
@@ -64,6 +66,8 @@ impl ServerErrorCodes for CoreErrorCodes
 			CoreErrorCodes::EmailMessage => 51,
 
 			CoreErrorCodes::RedisError => 52,
+
+			CoreErrorCodes::DateStrParse => 60,
 
 			CoreErrorCodes::FileLocalOpen => 500,
 			CoreErrorCodes::FileRemove => 501,
