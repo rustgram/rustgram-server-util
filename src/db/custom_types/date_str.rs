@@ -3,7 +3,7 @@ use std::str::FromStr;
 
 use serde::{de, Deserialize, Deserializer, Serialize, Serializer};
 
-use crate::error::{CoreErrorCodes, ServerCoreError, ServerErrorConstructor};
+use crate::error::{server_err, CoreErrorCodes, ServerCoreError};
 
 macro_rules! single_time_position_str {
 	($p:expr) => {
@@ -253,7 +253,7 @@ impl FromStr for DateStr
 				day,
 			})
 		} else {
-			Err(ServerCoreError::new_msg(
+			Err(server_err(
 				400,
 				CoreErrorCodes::DateStrParse,
 				"Date is in a wrong format. Accepted format: YYY-MM-DD",
@@ -330,7 +330,7 @@ impl FromStr for DateTimeStr
 				second,
 			})
 		} else {
-			Err(ServerCoreError::new_msg(
+			Err(server_err(
 				400,
 				CoreErrorCodes::DateStrParse,
 				"Date time is in a wrong format. Accepted format: YYY-MM-DD HH:MM:SS",
@@ -421,7 +421,7 @@ impl FromStr for DateTimeMilliStr
 				milli_seconds,
 			})
 		} else {
-			Err(ServerCoreError::new_msg(
+			Err(server_err(
 				400,
 				CoreErrorCodes::DateStrParse,
 				"Date time is in a wrong format. Accepted format: YYY-MM-DD HH:MM:SS.MMM",

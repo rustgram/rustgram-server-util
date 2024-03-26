@@ -1,64 +1,44 @@
 use std::collections::HashMap;
+use std::str::FromStr;
 
 use rustgram::{Request, RouteParams};
 
-use crate::error::{CoreErrorCodes, ServerCoreError, ServerErrorConstructor};
+use crate::error::{server_err, CoreErrorCodes};
+use crate::res::AppRes;
 
-pub fn get_params(req: &Request) -> Result<&RouteParams, ServerCoreError>
+pub fn get_params(req: &Request) -> AppRes<&RouteParams>
 {
 	match req.extensions().get::<RouteParams>() {
 		Some(p) => Ok(p),
-		None => {
-			Err(ServerCoreError::new_msg(
-				400,
-				CoreErrorCodes::NoParameter,
-				"No parameter sent",
-			))
-		},
+		None => Err(server_err(400, CoreErrorCodes::NoParameter, "No parameter sent")),
 	}
 }
 
-pub fn get_name_param_from_req<'a>(req: &'a Request, name: &str) -> Result<&'a str, ServerCoreError>
+pub fn get_name_param_from_req<'a>(req: &'a Request, name: &str) -> AppRes<&'a str>
 {
 	let params = get_params(req)?;
 
 	match params.get(name) {
-		None => {
-			Err(ServerCoreError::new_msg(
-				400,
-				CoreErrorCodes::NoParameter,
-				"Parameter not found",
-			))
-		},
+		None => Err(server_err(400, CoreErrorCodes::NoParameter, "Parameter not found")),
 		Some(n) => Ok(n),
 	}
 }
 
-pub fn get_name_param_from_params<'a>(params: &'a RouteParams, name: &str) -> Result<&'a str, ServerCoreError>
+pub fn get_name_param_from_params<'a>(params: &'a RouteParams, name: &str) -> AppRes<&'a str>
 {
 	//this is useful if we need more than one params, so we don't need to get it from req multiple times
 	match params.get(name) {
-		None => {
-			Err(ServerCoreError::new_msg(
-				400,
-				CoreErrorCodes::NoParameter,
-				"Parameter not found",
-			))
-		},
+		None => Err(server_err(400, CoreErrorCodes::NoParameter, "Parameter not found")),
 		Some(n) => Ok(n),
 	}
 }
 
-pub fn get_query_params(req: &Request) -> Result<HashMap<String, String>, ServerCoreError>
+pub fn get_query_params(req: &Request) -> AppRes<HashMap<String, String>>
 {
 	let query = match req.uri().query() {
 		Some(q) => q,
 		None => {
-			return Err(ServerCoreError::new_msg(
-				400,
-				CoreErrorCodes::NoUrlQuery,
-				"Url query not found",
-			));
+			return Err(server_err(400, CoreErrorCodes::NoUrlQuery, "Url query not found"));
 		},
 	};
 
@@ -72,13 +52,14 @@ pub fn get_query_params(req: &Request) -> Result<HashMap<String, String>, Server
 	Ok(params)
 }
 
-pub fn get_time_from_url_param(time: &str) -> Result<u128, ServerCoreError>
+pub fn get_number_from_url_param<T: FromStr>(number: &str) -> AppRes<T>
 {
-	time.parse().map_err(|_e| {
-		ServerCoreError::new_msg(
-			400,
-			CoreErrorCodes::UnexpectedTime,
-			"Time is wrong. It must be a number",
-		)
-	})
+	number
+		.parse()
+		.map_err(|_e| server_err(400, CoreErrorCodes::UnexpectedTime, "It must be a number"))
+}
+
+pub fn get_time_from_url_param(time: &str) -> AppRes<u128>
+{
+	get_number_from_url_param(time)
 }

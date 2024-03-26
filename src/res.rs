@@ -40,10 +40,7 @@ impl IntoResponse<Response> for ServerCoreError
 {
 	fn into_response(self) -> Response
 	{
-		let status = match StatusCode::from_u16(self.http_status_code) {
-			Ok(s) => s,
-			Err(_e) => StatusCode::BAD_REQUEST,
-		};
+		let status = StatusCode::from_u16(self.http_status_code).unwrap_or(StatusCode::BAD_REQUEST);
 
 		//msg for the developer only
 		//for std out to get logged with 3rd party service.

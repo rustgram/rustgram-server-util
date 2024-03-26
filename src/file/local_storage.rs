@@ -6,8 +6,9 @@ use tokio::fs::{remove_file, File};
 use tokio::io::AsyncWriteExt;
 use tokio_util::codec::{BytesCodec, FramedRead};
 
-use crate::error::{CoreErrorCodes, ServerCoreError, ServerErrorConstructor};
+use crate::error::{server_err, server_err_owned, CoreErrorCodes, ServerCoreError, ServerErrorConstructor};
 use crate::file::FileHandler;
+use crate::res::AppRes;
 
 pub struct LocalStorage
 {
@@ -23,7 +24,7 @@ impl LocalStorage
 		}
 	}
 
-	async fn remove_file(&self, path: &str) -> Result<(), ServerCoreError>
+	async fn remove_file(&self, path: &str) -> AppRes<()>
 	{
 		remove_file(path).await.map_err(|e| {
 			ServerCoreError::new(
@@ -40,12 +41,12 @@ impl LocalStorage
 #[async_trait]
 impl FileHandler for LocalStorage
 {
-	async fn get_part(&self, part_id: &str, content_type: Option<&str>) -> Result<Response, ServerCoreError>
+	async fn get_part(&self, part_id: &str, content_type: Option<&str>) -> AppRes<Response>
 	{
 		let path = self.path.to_string() + "/" + part_id;
 
 		let file = File::open(path.as_str()).await.map_err(|e| {
-			ServerCoreError::new_msg_owned(
+			server_err_owned(
 				400,
 				CoreErrorCodes::FileLocalOpen,
 				format!("error in open file: {}", e),
@@ -62,16 +63,16 @@ impl FileHandler for LocalStorage
 			.header("Content-Type", content_type)
 			.header("Access-Control-Allow-Origin", "*")
 			.body(body)
-			.map_err(|_e| ServerCoreError::new_msg(400, CoreErrorCodes::DbBulkInsert, "Can't download the file"))
+			.map_err(|_e| server_err(400, CoreErrorCodes::DbBulkInsert, "Can't download the file"))
 	}
 
-	async fn upload_part(&self, req: Request, part_id: &str, max_chunk_size: usize) -> Result<usize, ServerCoreError>
+	async fn upload_part(&self, req: Request, part_id: &str, max_chunk_size: usize) -> AppRes<usize>
 	{
 		let path = self.path.to_string() + "/" + part_id;
 
 		let mut file = File::create(path.as_str())
 			.await
-			.map_err(|_e| ServerCoreError::new_msg(400, CoreErrorCodes::FileLocalOpen, "error in creating file"))?;
+			.map_err(|_e| server_err(400, CoreErrorCodes::FileLocalOpen, "error in creating file"))?;
 
 		let mut body = req.into_body();
 		let mut size: usize = 0;
@@ -89,7 +90,7 @@ impl FileHandler for LocalStorage
 			if b_len + size > max_chunk_size {
 				self.remove_file(path.as_str()).await?;
 
-				return Err(ServerCoreError::new_msg_owned(
+				return Err(server_err_owned(
 					400,
 					CoreErrorCodes::FileSave,
 					format!(
@@ -101,7 +102,7 @@ impl FileHandler for LocalStorage
 			}
 
 			file.write_all(&bytes).await.map_err(|e| {
-				ServerCoreError::new_msg_owned(
+				server_err_owned(
 					400,
 					CoreErrorCodes::DbBulkInsert,
 					"Can't save the file".to_string(),
@@ -115,7 +116,7 @@ impl FileHandler for LocalStorage
 		Ok(size)
 	}
 
-	async fn delete_part(&self, part_id: &str) -> Result<(), ServerCoreError>
+	async fn delete_part(&self, part_id: &str) -> AppRes<()>
 	{
 		let path = self.path.to_string() + "/" + part_id;
 
@@ -123,7 +124,7 @@ impl FileHandler for LocalStorage
 	}
 
 	#[allow(clippy::single_match)]
-	async fn delete_parts(&self, parts: &[String]) -> Result<(), ServerCoreError>
+	async fn delete_parts(&self, parts: &[String]) -> AppRes<()>
 	{
 		//delete every part
 		for part in parts {

@@ -1,12 +1,12 @@
 use uuid::{Uuid, Version};
 
-use crate::error::{CoreErrorCodes, ServerCoreError, ServerErrorConstructor};
+use crate::error::{server_err, CoreErrorCodes};
 use crate::res::AppRes;
 
 pub fn check_id_format(id: &str) -> AppRes<()>
 {
 	let uuid = Uuid::try_parse(id).map_err(|_e| {
-		ServerCoreError::new_msg(
+		server_err(
 			400,
 			CoreErrorCodes::IdWrongFormat,
 			"Id has a wrong format. Make sure to follow the uuid v4 or v7 format.",
@@ -27,7 +27,7 @@ pub fn check_id_format(id: &str) -> AppRes<()>
 		}
 	}
 
-	Err(ServerCoreError::new_msg(
+	Err(server_err(
 		400,
 		CoreErrorCodes::IdWrongFormat,
 		"Id has a wrong format. Make sure to follow the uuid v4 or v7 format.",

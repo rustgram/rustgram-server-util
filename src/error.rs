@@ -136,3 +136,13 @@ impl ServerErrorConstructor for ServerCoreError
 		}
 	}
 }
+
+pub fn server_err(http_status_code: u16, error_code: impl ServerErrorCodes, msg: &'static str) -> ServerCoreError
+{
+	ServerCoreError::new_msg(http_status_code, error_code, msg)
+}
+
+pub fn server_err_owned(http_status_code: u16, error_code: impl ServerErrorCodes, msg_owned: String, debug_msg: Option<String>) -> ServerCoreError
+{
+	ServerCoreError::new_msg_owned(http_status_code, error_code, msg_owned, debug_msg)
+}
