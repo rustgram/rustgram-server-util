@@ -199,6 +199,20 @@ macro_rules! sqlite_from_str (
 	)
 );
 
+macro_rules! sqlite_to_value (
+	($t:ty) => (
+		#[cfg(feature = "sqlite")]
+		#[allow(clippy::from_over_into)]
+		impl Into<rusqlite::types::Value> for $t
+		{
+			fn into(self) -> rusqlite::types::Value
+			{
+				rusqlite::types::Value::Text(self.to_string())
+			}
+		}
+	)
+);
+
 macro_rules! serialize_to_str (
 	($t:ty) => (
 		impl Serialize for $t
@@ -273,6 +287,7 @@ impl Display for DateStr
 serialize_to_str!(DateStr);
 deserialize_from_str!(DateStr);
 sqlite_from_str!(DateStr);
+sqlite_to_value!(DateStr);
 
 #[cfg(feature = "mysql")]
 impl mysql_common::prelude::FromValue for DateStr
@@ -298,6 +313,16 @@ impl TryFrom<mysql_common::Value> for DateStr
 			},
 			_ => Err(mysql_common::FromValueError(value)),
 		}
+	}
+}
+
+#[cfg(feature = "mysql")]
+#[allow(clippy::from_over_into)]
+impl Into<mysql_common::Value> for DateStr
+{
+	fn into(self) -> mysql_common::Value
+	{
+		mysql_common::Value::Date(self.year, self.month, self.day, 0, 0, 0, 0)
 	}
 }
 
@@ -359,6 +384,7 @@ impl Display for DateTimeStr
 serialize_to_str!(DateTimeStr);
 deserialize_from_str!(DateTimeStr);
 sqlite_from_str!(DateTimeStr);
+sqlite_to_value!(DateTimeStr);
 
 #[cfg(feature = "mysql")]
 impl mysql_common::prelude::FromValue for DateTimeStr
@@ -387,6 +413,24 @@ impl TryFrom<mysql_common::Value> for DateTimeStr
 			},
 			_ => Err(mysql_common::FromValueError(value)),
 		}
+	}
+}
+
+#[cfg(feature = "mysql")]
+#[allow(clippy::from_over_into)]
+impl Into<mysql_common::Value> for DateTimeStr
+{
+	fn into(self) -> mysql_common::Value
+	{
+		mysql_common::Value::Date(
+			self.year,
+			self.month,
+			self.day,
+			self.hour,
+			self.minute,
+			self.second,
+			0,
+		)
 	}
 }
 
@@ -452,6 +496,7 @@ impl Display for DateTimeMilliStr
 serialize_to_str!(DateTimeMilliStr);
 deserialize_from_str!(DateTimeMilliStr);
 sqlite_from_str!(DateTimeMilliStr);
+sqlite_to_value!(DateTimeMilliStr);
 
 #[cfg(feature = "mysql")]
 impl mysql_common::prelude::FromValue for DateTimeMilliStr
