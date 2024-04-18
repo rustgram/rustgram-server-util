@@ -148,7 +148,7 @@ macro_rules! set_params_vec_outer {
 macro_rules! set_params {
 	($( $param:expr ),+ $(,)?) => {
 		vec![
-			$($crate::db::rusqlite_export::types::Value::from($param),)*
+			$(Into::<$crate::db::rusqlite_export::types::Value>::into($param),)*
 		]
 	};
 }
@@ -160,7 +160,7 @@ macro_rules! set_params_vec {
 		let mut tmp = Vec::with_capacity($vec.len());
 
 		for inp in $vec {
-			tmp.push($crate::db::rusqlite_export::types::Value::from(inp.0))
+			tmp.push(Into::<$crate::db::rusqlite_export::types::Value>::into(inp.0))
 		}
 
 		tmp
@@ -174,7 +174,7 @@ macro_rules! set_params_vec_outer {
 		let mut tmp = Vec::with_capacity($vec.len());
 
 		for inp in $vec {
-			tmp.push($crate::db::rusqlite_export::types::Value::from(inp))
+			tmp.push(Into::<$crate::db::rusqlite_export::types::Value>::into(inp))
 		}
 
 		tmp
