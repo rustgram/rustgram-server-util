@@ -276,6 +276,30 @@ impl FromStr for DateStr
 	}
 }
 
+impl From<DateTimeStr> for DateStr
+{
+	fn from(value: DateTimeStr) -> Self
+	{
+		Self {
+			year: value.year,
+			month: value.month,
+			day: value.day,
+		}
+	}
+}
+
+impl From<DateTimeMilliStr> for DateStr
+{
+	fn from(value: DateTimeMilliStr) -> Self
+	{
+		Self {
+			year: value.year,
+			month: value.month,
+			day: value.day,
+		}
+	}
+}
+
 impl Display for DateStr
 {
 	fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result
@@ -360,6 +384,36 @@ impl FromStr for DateTimeStr
 				CoreErrorCodes::DateStrParse,
 				"Date time is in a wrong format. Accepted format: YYY-MM-DD HH:MM:SS",
 			))
+		}
+	}
+}
+
+impl From<DateStr> for DateTimeStr
+{
+	fn from(value: DateStr) -> Self
+	{
+		Self {
+			year: value.year,
+			month: value.month,
+			day: value.day,
+			hour: 0,
+			minute: 0,
+			second: 0,
+		}
+	}
+}
+
+impl From<DateTimeMilliStr> for DateTimeStr
+{
+	fn from(value: DateTimeMilliStr) -> Self
+	{
+		Self {
+			year: value.year,
+			month: value.month,
+			day: value.day,
+			hour: value.hour,
+			minute: value.minute,
+			second: value.second,
 		}
 	}
 }
@@ -470,6 +524,38 @@ impl FromStr for DateTimeMilliStr
 				CoreErrorCodes::DateStrParse,
 				"Date time is in a wrong format. Accepted format: YYY-MM-DD HH:MM:SS.MMM",
 			))
+		}
+	}
+}
+
+impl From<DateStr> for DateTimeMilliStr
+{
+	fn from(value: DateStr) -> Self
+	{
+		Self {
+			year: value.year,
+			month: value.month,
+			day: value.day,
+			hour: 0,
+			minute: 0,
+			second: 0,
+			milli_seconds: 0,
+		}
+	}
+}
+
+impl From<DateTimeStr> for DateTimeMilliStr
+{
+	fn from(value: DateTimeStr) -> Self
+	{
+		Self {
+			year: value.year,
+			month: value.month,
+			day: value.day,
+			hour: value.hour,
+			minute: value.minute,
+			second: value.second,
+			milli_seconds: 0,
 		}
 	}
 }
