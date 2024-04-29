@@ -200,7 +200,7 @@ impl Sqlite
 		let result = conn
 			.interact(move |conn| query_sync::<T, P>(conn, sql, params))
 			.await
-			.map_err(|e| db_query_err(&e))??;
+			.map_err(|e| db_query_err(&e, "Interact Error"))??;
 
 		Ok(result)
 	}
@@ -221,7 +221,7 @@ impl Sqlite
 		let result = conn
 			.interact(move |conn| query_sync::<T, P>(conn, sql.as_str(), params))
 			.await
-			.map_err(|e| db_query_err(&e))??;
+			.map_err(|e| db_query_err(&e, "Interact Error"))??;
 
 		Ok(result)
 	}
@@ -242,7 +242,7 @@ impl Sqlite
 		let result = conn
 			.interact(move |conn| query_first_sync::<T, P>(conn, sql, params))
 			.await
-			.map_err(|e| db_query_err(&e))??;
+			.map_err(|e| db_query_err(&e, "Interact Error"))??;
 
 		Ok(result)
 	}
@@ -263,7 +263,7 @@ impl Sqlite
 		let result = conn
 			.interact(move |conn| query_first_sync::<T, P>(conn, sql.as_str(), params))
 			.await
-			.map_err(|e| db_query_err(&e))??;
+			.map_err(|e| db_query_err(&e, "Interact Error"))??;
 
 		Ok(result)
 	}
@@ -277,7 +277,7 @@ impl Sqlite
 		let result = conn
 			.interact(move |conn| query_non_param_sync(conn, sql))
 			.await
-			.map_err(|e| db_query_err(&e))??;
+			.map_err(|e| db_query_err(&e, "Interact Error"))??;
 
 		Ok(result)
 	}
@@ -291,7 +291,7 @@ impl Sqlite
 		let result = conn
 			.interact(move |conn| query_non_param_sync(conn, sql.as_str()))
 			.await
-			.map_err(|e| db_query_err(&e))??;
+			.map_err(|e| db_query_err(&e, "Interact Error"))??;
 
 		Ok(result)
 	}
@@ -305,7 +305,7 @@ impl Sqlite
 		let result = conn
 			.interact(move |conn| query_first_non_param_sync(conn, sql))
 			.await
-			.map_err(|e| db_query_err(&e))??;
+			.map_err(|e| db_query_err(&e, "Interact Error"))??;
 
 		Ok(result)
 	}
@@ -319,7 +319,7 @@ impl Sqlite
 		let result = conn
 			.interact(move |conn| query_first_non_param_sync(conn, sql.as_str()))
 			.await
-			.map_err(|e| db_query_err(&e))??;
+			.map_err(|e| db_query_err(&e, "Interact Error"))??;
 
 		Ok(result)
 	}
@@ -354,7 +354,7 @@ impl Sqlite
 
 		conn.interact(move |conn| exec_sync(conn, sql, params))
 			.await
-			.map_err(|e| db_exec_err(&e))??;
+			.map_err(|e| db_exec_err(&e, "Interact Error"))??;
 
 		Ok(())
 	}
@@ -368,7 +368,7 @@ impl Sqlite
 
 		conn.interact(move |conn| exec_sync(conn, sql.as_str(), params))
 			.await
-			.map_err(|e| db_exec_err(&e))??;
+			.map_err(|e| db_exec_err(&e, "Interact Error"))??;
 
 		Ok(())
 	}
@@ -379,7 +379,7 @@ impl Sqlite
 
 		conn.interact(move |conn| exec_non_param_sync(conn, sql))
 			.await
-			.map_err(|e| db_exec_err(&e))??;
+			.map_err(|e| db_exec_err(&e, "Interact Error"))??;
 
 		Ok(())
 	}
@@ -390,7 +390,7 @@ impl Sqlite
 
 		conn.interact(move |conn| exec_non_param_sync(conn, sql.as_str()))
 			.await
-			.map_err(|e| db_exec_err(&e))??;
+			.map_err(|e| db_exec_err(&e, "Interact Error"))??;
 
 		Ok(())
 	}
@@ -409,7 +409,7 @@ impl Sqlite
 
 		conn.interact(move |conn| exec_transaction_sync(conn, data))
 			.await
-			.map_err(|e| db_exec_err(&e))?
+			.map_err(|e| db_exec_err(&e, "Interact Error"))?
 	}
 
 	/**
@@ -444,7 +444,7 @@ impl Sqlite
 		let _res = conn
 			.interact(move |conn| bulk_insert_sync(conn, ignore, table, cols, objects, fun))
 			.await
-			.map_err(|e| db_bulk_insert_err(&e))??;
+			.map_err(|e| db_bulk_insert_err(&e, table))??;
 
 		Ok(())
 	}
@@ -456,16 +456,16 @@ where
 	P: IntoIterator,
 	P::Item: ToSql,
 {
-	let mut stmt = conn.prepare(sql).map_err(|e| db_query_err(&e))?;
+	let mut stmt = conn.prepare(sql).map_err(|e| db_query_err(&e, sql))?;
 
 	let mut rows = stmt
 		.query(params_from_iter(params))
-		.map_err(|e| db_query_err(&e))?;
+		.map_err(|e| db_query_err(&e, sql))?;
 
 	let mut init: Vec<T> = Vec::new();
 
-	while let Some(row) = rows.next().map_err(|e| db_query_err(&e))? {
-		init.push(FromSqliteRow::from_row_opt(row).map_err(|e| db_query_err(&e))?)
+	while let Some(row) = rows.next().map_err(|e| db_query_err(&e, sql))? {
+		init.push(FromSqliteRow::from_row_opt(row).map_err(|e| db_query_err(&e, sql))?)
 	}
 
 	Ok(init)
@@ -477,14 +477,18 @@ where
 	P: IntoIterator,
 	P::Item: ToSql,
 {
-	let mut stmt = conn.prepare(sql).map_err(|e| db_query_err(&e))?;
+	let mut stmt = conn.prepare(sql).map_err(|e| db_query_err(&e, sql))?;
 
 	let mut rows = stmt
 		.query(params_from_iter(params))
-		.map_err(|e| db_query_err(&e))?;
+		.map_err(|e| db_query_err(&e, sql))?;
 
-	match rows.next().map_err(|e| db_query_err(&e))? {
-		Some(row) => Ok(Some(FromSqliteRow::from_row_opt(row).map_err(|e| db_query_err(&e))?)),
+	match rows.next().map_err(|e| db_query_err(&e, sql))? {
+		Some(row) => {
+			Ok(Some(
+				FromSqliteRow::from_row_opt(row).map_err(|e| db_query_err(&e, sql))?,
+			))
+		},
 		None => Ok(None),
 	}
 }
@@ -493,14 +497,14 @@ fn query_non_param_sync<T>(conn: &mut Connection, sql: &str) -> Result<Vec<T>, S
 where
 	T: FromSqliteRow,
 {
-	let mut stmt = conn.prepare(sql).map_err(|e| db_query_err(&e))?;
+	let mut stmt = conn.prepare(sql).map_err(|e| db_query_err(&e, sql))?;
 
-	let mut rows = stmt.query([]).map_err(|e| db_query_err(&e))?;
+	let mut rows = stmt.query([]).map_err(|e| db_query_err(&e, sql))?;
 
 	let mut init: Vec<T> = Vec::new();
 
-	while let Some(row) = rows.next().map_err(|e| db_query_err(&e))? {
-		init.push(FromSqliteRow::from_row_opt(row).map_err(|e| db_query_err(&e))?)
+	while let Some(row) = rows.next().map_err(|e| db_query_err(&e, sql))? {
+		init.push(FromSqliteRow::from_row_opt(row).map_err(|e| db_query_err(&e, sql))?)
 	}
 
 	Ok(init)
@@ -510,12 +514,16 @@ fn query_first_non_param_sync<T>(conn: &mut Connection, sql: &str) -> Result<Opt
 where
 	T: FromSqliteRow,
 {
-	let mut stmt = conn.prepare(sql).map_err(|e| db_query_err(&e))?;
+	let mut stmt = conn.prepare(sql).map_err(|e| db_query_err(&e, sql))?;
 
-	let mut rows = stmt.query([]).map_err(|e| db_query_err(&e))?;
+	let mut rows = stmt.query([]).map_err(|e| db_query_err(&e, sql))?;
 
-	match rows.next().map_err(|e| db_query_err(&e))? {
-		Some(row) => Ok(Some(FromSqliteRow::from_row_opt(row).map_err(|e| db_query_err(&e))?)),
+	match rows.next().map_err(|e| db_query_err(&e, sql))? {
+		Some(row) => {
+			Ok(Some(
+				FromSqliteRow::from_row_opt(row).map_err(|e| db_query_err(&e, sql))?,
+			))
+		},
 		None => Ok(None),
 	}
 }
@@ -526,12 +534,12 @@ where
 	P::Item: ToSql,
 {
 	conn.execute(sql, params_from_iter(params))
-		.map_err(|e| db_exec_err(&e))
+		.map_err(|e| db_exec_err(&e, sql))
 }
 
 fn exec_non_param_sync(conn: &mut Connection, sql: &str) -> Result<usize, ServerCoreError>
 {
-	conn.execute(sql, []).map_err(|e| db_exec_err(&e))
+	conn.execute(sql, []).map_err(|e| db_exec_err(&e, sql))
 }
 
 fn exec_transaction_sync<P>(conn: &mut Connection, data: Vec<TransactionData<P>>) -> Result<(), ServerCoreError>
@@ -581,13 +589,15 @@ where
 
 	//transaction from here: https://github.com/avinassh/fast-sqlite3-inserts/blob/master/src/bin/basic.rs
 	//but not necessary for inserting in one table
-	let tx = conn.transaction().map_err(|e| db_bulk_insert_err(&e))?;
+	let tx = conn
+		.transaction()
+		.map_err(|e| db_bulk_insert_err(&e, table))?;
 
 	let result = tx
 		.execute(stmt.as_str(), params_from_iter(params))
-		.map_err(|e| db_bulk_insert_err(&e))?;
+		.map_err(|e| db_bulk_insert_err(&e, table))?;
 
-	tx.commit().map_err(|e| db_bulk_insert_err(&e))?;
+	tx.commit().map_err(|e| db_bulk_insert_err(&e, table))?;
 
 	Ok(result)
 }

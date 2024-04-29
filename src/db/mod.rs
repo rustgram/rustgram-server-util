@@ -55,33 +55,33 @@ pub fn get_in<T>(objects: &[T]) -> String
 	)
 }
 
-fn db_query_err<E: Error>(e: &E) -> ServerCoreError
+fn db_query_err<E: Error>(e: &E, sql: &str) -> ServerCoreError
 {
 	ServerCoreError::new_msg_and_debug(
 		422,
 		CoreErrorCodes::DbQuery,
 		"db error",
-		Some(format!("db fetch err, {:?}", e)),
+		Some(format!("db fetch err in sql: {}. Error: {:?}", sql, e)),
 	)
 }
 
-fn db_exec_err<E: Error>(e: &E) -> ServerCoreError
+fn db_exec_err<E: Error>(e: &E, sql: &str) -> ServerCoreError
 {
 	ServerCoreError::new_msg_and_debug(
 		422,
 		CoreErrorCodes::DbExecute,
 		"db error",
-		Some(format!("db execute err, {:?}", e)),
+		Some(format!("db execute err in sql: {}. Error: {:?}", sql, e)),
 	)
 }
 
-fn db_bulk_insert_err<E: Error>(e: &E) -> ServerCoreError
+fn db_bulk_insert_err<E: Error>(e: &E, table: &str) -> ServerCoreError
 {
 	ServerCoreError::new_msg_and_debug(
 		422,
 		CoreErrorCodes::DbBulkInsert,
 		"db error",
-		Some(format!("db bulk insert err, {:?}", e)),
+		Some(format!("db bulk insert err in table: {}. Error: {:?}", table, e)),
 	)
 }
 
