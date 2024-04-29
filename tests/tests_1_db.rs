@@ -36,6 +36,10 @@ async fn tests()
 	test_14_tx_exec().await;
 
 	println!("-----------");
+	println!("db error");
+	test_db_error().await;
+
+	println!("-----------");
 	println!("clean up");
 	clean_up().await;
 	println!("-----------");
@@ -266,6 +270,25 @@ async fn test_14_tx_exec()
 	assert_eq!(test_data[0].id, id1);
 	assert_eq!(test_data[1].id, id2);
 	assert_eq!(test_data[2].id, id3);
+}
+
+async fn test_db_error()
+{
+	//wrong column names
+	//language=SQLx
+	let sql = "INSERT INTO test (id1, name1, time1) VALUES (?,?,?)";
+
+	let id1 = create_id();
+	let name1 = "hello1".to_string();
+	let time1 = get_time().unwrap();
+
+	let result = db::exec(sql, set_params!(id1.clone(), name1, time1.to_string())).await;
+
+	if let Err(e) = result {
+		println!("{:?}", e);
+	} else {
+		panic!("Must be an error");
+	}
 }
 
 async fn clean_up()
