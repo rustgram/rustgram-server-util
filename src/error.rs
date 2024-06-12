@@ -30,6 +30,8 @@ pub enum CoreErrorCodes
 	NoParameter,
 	NoUrlQuery,
 
+	PageNotFound,
+
 	FileLocalOpen,
 	FileRemove,
 	FileSave,
@@ -68,6 +70,8 @@ impl ServerErrorCodes for CoreErrorCodes
 			CoreErrorCodes::RedisError => 52,
 
 			CoreErrorCodes::DateStrParse => 60,
+
+			Self::PageNotFound => 404,
 
 			CoreErrorCodes::FileLocalOpen => 500,
 			CoreErrorCodes::FileRemove => 501,

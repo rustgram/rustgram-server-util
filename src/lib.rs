@@ -8,6 +8,7 @@ pub mod error;
 pub mod file;
 pub mod input_helper;
 pub mod res;
+pub mod simple_static_server;
 #[cfg(feature = "static_var")]
 pub mod static_var;
 pub mod url_helper;
