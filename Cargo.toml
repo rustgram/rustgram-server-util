@@ -1,19 +1,19 @@
 [package]
 name = "rustgram-server-util"
-version = "0.2.0"
+version = "0.3.0"
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [workspace]
 members = [
-	"rustgram-server-util-macros"
+    "rustgram-server-util-macros"
 ]
 
 [dependencies]
-rustgram-server-util-macros = {path = "./rustgram-server-util-macros", optional = true}
+rustgram-server-util-macros = { path = "./rustgram-server-util-macros", optional = true }
 
-rustgram = "^0.1.8"
+rustgram = "^0.2.0"
 hyper = { version = "^0.14", features = ["full"] }
 tokio = { version = "1", features = ["full"] }
 tokio-util = "0.7.2"
@@ -28,42 +28,43 @@ futures = { version = "0.3.6", default-features = false, features = ["async-awai
 
 #_______________________________________________________________________________________________________________________
 # json handling
-serde_json = {version = "1.0.81", default-features = false, features = ["alloc"]}
+serde_json = { version = "1.0.81", default-features = false, features = ["alloc"] }
 serde = { version = "1.0", default-features = false, features = ["derive", "alloc"] }
+serde_qs = "0.12"
 
 #_______________________________________________________________________________________________________________________
 # mysql db
-mysql_async = { version = "0.32.2", optional = true, default-features = false, features = ["default-rustls"]}
-mysql_common = { version= "0.30.3", optional = true }
+mysql_async = { version = "0.32.2", optional = true, default-features = false, features = ["default-rustls"] }
+mysql_common = { version = "0.30.3", optional = true }
 
 # sqlite
-deadpool-sqlite = { version= "0.5.0", optional = true }
+deadpool-sqlite = { version = "0.5.0", optional = true }
 rusqlite = { version = "0.28.0", features = ["bundled"], optional = true }
 
 #_______________________________________________________________________________________________________________________
 #cache
 
 #redis
-redis = {version="0.23.0", features = ["tokio-rustls-comp"]}
+redis = { version = "0.23.0", features = ["tokio-rustls-comp"] }
 
 #_______________________________________________________________________________________________________________________
 
 # id
-uuid = {version="1.4.1", features= ["v4", "v7", "fast-rng"]}
+uuid = { version = "1.4.1", features = ["v4", "v7", "fast-rng"] }
 
 #_______________________________________________________________________________________________________________________
 
 # dotenv vars
-dotenv = {version = "0.15.0", optional = true}
+dotenv = { version = "0.15.0", optional = true }
 
 [dev-dependencies]
-rustgram-server-util-macros = {path = "./rustgram-server-util-macros"}
+rustgram-server-util-macros = { path = "./rustgram-server-util-macros" }
 
 [features]
 default = ["mysql"]
 
-mysql = ["mysql_async","mysql_common"]
-sqlite = ["deadpool-sqlite","rusqlite"]
+mysql = ["mysql_async", "mysql_common"]
+sqlite = ["deadpool-sqlite", "rusqlite"]
 
 derive_macro = ["rustgram-server-util-macros"]
 

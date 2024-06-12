@@ -70,3 +70,20 @@ where
 		},
 	}
 }
+
+pub fn qs_to_string<T: Serialize>(value: &T) -> AppRes<String>
+{
+	serde_qs::to_string(value).map_err(|e| {
+		server_err_owned(
+			422,
+			CoreErrorCodes::JsonToString,
+			format!("json parse err: {:?}", e),
+			None,
+		)
+	})
+}
+
+pub fn bytes_to_qs<'a, T: de::Deserialize<'a>>(v: &'a &[u8]) -> AppRes<T>
+{
+	serde_qs::from_bytes(v).map_err(|e| server_err_owned(422, CoreErrorCodes::JsonParse, format!("Wrong input: {:?}", e), None))
+}

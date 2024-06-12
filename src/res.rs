@@ -8,7 +8,7 @@ use crate::get_time;
 use crate::input_helper::json_to_string;
 
 //__________________________________________________________________________________________________
-//two different output for str msg and string msg but for the client is is always the same
+//two different output for str msg and string msg but for the client is always the same
 
 #[derive(Serialize)]
 pub struct ServerOutputStr<T>
