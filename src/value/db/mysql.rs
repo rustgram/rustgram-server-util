@@ -1,7 +1,7 @@
 use crate::db::custom_types::date_str::DateTimeStr;
 use crate::db::mysql_async_export::prelude::{FromRow, FromValue};
 use crate::db::mysql_async_export::{FromRowError, FromValueError, Row, Value as MysqlValue};
-use crate::db::value::{OutputRow, Value};
+use crate::value::{OutputRow, Value};
 
 impl FromValue for Value
 {

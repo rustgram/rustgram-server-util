@@ -1,6 +1,6 @@
 use serde::Serialize;
 
-use crate::db::value::Value;
+use crate::value::Value;
 
 impl Serialize for Value
 {

@@ -1,7 +1,7 @@
 use crate::db::rusqlite_export::types::{FromSql, FromSqlResult, Value as SqliteValue, ValueRef};
 use crate::db::rusqlite_export::{Error as SqliteError, Row};
-use crate::db::value::{OutputRow, Value};
 use crate::db::{FormSqliteRowError, FromSqliteRow};
+use crate::value::{OutputRow, Value};
 
 impl FromSql for Value
 {

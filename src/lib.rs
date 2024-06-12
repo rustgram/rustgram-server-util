@@ -11,6 +11,7 @@ pub mod res;
 #[cfg(feature = "static_var")]
 pub mod static_var;
 pub mod url_helper;
+pub mod value;
 
 pub fn get_time() -> res::AppRes<u128>
 {

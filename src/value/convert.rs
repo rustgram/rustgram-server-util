@@ -1,4 +1,4 @@
-use crate::db::value::Value;
+use crate::value::Value;
 
 impl From<i64> for Value
 {

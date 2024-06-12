@@ -4,7 +4,7 @@ use std::fmt::Formatter;
 use serde::de::{DeserializeSeed, MapAccess, SeqAccess, Visitor};
 use serde::{Deserialize, Deserializer};
 
-use crate::db::value::{Value, ValueMap};
+use crate::value::{Value, ValueMap};
 
 struct ValueVisitor;
 

@@ -8,7 +8,6 @@ pub mod id_handling;
 mod mariadb;
 #[cfg(feature = "sqlite")]
 mod sqlite;
-pub mod value;
 
 #[cfg(feature = "mysql")]
 pub use mysql_async as mysql_async_export;
