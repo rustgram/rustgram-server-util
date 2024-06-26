@@ -13,7 +13,7 @@ members = [
 [dependencies]
 rustgram-server-util-macros = { path = "./rustgram-server-util-macros", optional = true }
 
-rustgram = "^0.2.0"
+rustgram = "^0.2.1"
 hyper = { version = "^0.14", features = ["full"] }
 tokio = { version = "1", features = ["full"] }
 tokio-util = "0.7.2"
