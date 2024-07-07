@@ -125,3 +125,16 @@ pub fn echo_success() -> JRes<ServerSuccessOutput>
 {
 	echo(ServerSuccessOutput("Success"))
 }
+
+#[derive(Serialize)]
+pub struct SingleValueRes<T: Serialize>
+{
+	v: T,
+}
+
+pub fn echo_sv<T: Serialize>(v: T) -> JRes<SingleValueRes<T>>
+{
+	echo(SingleValueRes {
+		v,
+	})
+}
