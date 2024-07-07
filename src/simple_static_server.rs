@@ -11,16 +11,9 @@ use crate::file::{FileHandler, LocalStorage};
 
 pub static LOCAL_FILE_HANDLER: OnceCell<LocalStorage> = OnceCell::const_new();
 
-pub async fn read_file(req: Request) -> Response
+pub async fn read_file(req: Request, path: &str) -> Response
 {
-	let path = req.uri().path();
-
-	let mut file = path;
-
-	if file.is_empty() || file == "/" {
-		file = "index.html"
-	}
-
+	let file = if path.is_empty() || path == "/" { "index.html" } else { path };
 	let mut file = file.to_owned();
 
 	let ext = match Path::new(&file).extension() {
