@@ -1,13 +1,13 @@
 [package]
 name = "rustgram-server-util"
-version = "0.3.0"
+version = "0.4.0"
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [workspace]
 members = [
-    "rustgram-server-util-macros"
+	"rustgram-server-util-macros"
 ]
 
 [dependencies]
@@ -50,7 +50,7 @@ redis = { version = "0.23.0", features = ["tokio-rustls-comp"] }
 #_______________________________________________________________________________________________________________________
 
 # id
-uuid = { version = "1.4.1", features = ["v4", "v7", "fast-rng"] }
+uuid = { version = "1.11.0", features = ["v4", "v7", "fast-rng"] }
 
 #_______________________________________________________________________________________________________________________
 
