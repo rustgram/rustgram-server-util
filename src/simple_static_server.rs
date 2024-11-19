@@ -8,10 +8,27 @@ use tokio::sync::OnceCell;
 
 use crate::error::{CoreErrorCodes, ServerCoreError, ServerErrorConstructor};
 use crate::file::{FileHandler, LocalStorage};
+use crate::url_helper::get_name_param_from_req;
 
 pub static LOCAL_FILE_HANDLER: OnceCell<LocalStorage> = OnceCell::const_new();
 
-pub async fn read_file(req: Request, path: &str) -> Response
+pub async fn read_file_from_root(req: Request, cache: Option<&str>) -> Response
+{
+	let path = req.uri().path();
+	let headers = req.headers().get(ACCEPT_ENCODING);
+
+	read_file(headers, path, cache).await
+}
+
+pub async fn read_file_from_route_path(req: Request, path_search: &str, cache: Option<&str>) -> Response
+{
+	let path = get_name_param_from_req(&req, path_search).unwrap_or("");
+	let headers = req.headers().get(ACCEPT_ENCODING);
+
+	read_file(headers, path, cache).await
+}
+
+pub async fn read_file(accept_encoding_header: Option<&HeaderValue>, path: &str, cache: Option<&str>) -> Response
 {
 	let file = if path.is_empty() || path == "/" { "index.html" } else { path };
 	let mut file = file.to_owned();
@@ -44,9 +61,7 @@ pub async fn read_file(req: Request, path: &str) -> Response
 		_ => return ServerCoreError::new_msg(404, CoreErrorCodes::PageNotFound, "Page not found").into_response(),
 	};
 
-	let headers = req.headers().get(ACCEPT_ENCODING);
-
-	let encoding = match (ext == "js" || ext == "wasm", headers) {
+	let encoding = match (ext == "js" || ext == "wasm", accept_encoding_header) {
 		(true, Some(h)) => {
 			if let Ok(h) = std::str::from_utf8(h.as_bytes()) {
 				if h.contains("br") {
@@ -73,7 +88,13 @@ pub async fn read_file(req: Request, path: &str) -> Response
 		Ok(mut res) => {
 			let res_headers = res.headers_mut();
 
-			//res_headers.insert("Cache-Control", HeaderValue::from_static("public, max-age=86400"));
+			if let Some(cache) = cache {
+				res_headers.insert(
+					"Cache-Control",
+					HeaderValue::from_str(&format!("public, max-age={}", cache)).unwrap(),
+				);
+			}
+
 			if let Some(e) = encoding {
 				res_headers.insert("Content-Encoding", HeaderValue::from_static(e));
 			}

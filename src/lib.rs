@@ -2,6 +2,8 @@
 
 use std::time::{SystemTime, UNIX_EPOCH};
 
+use rustgram::{Request, Response};
+
 pub mod cache;
 pub mod db;
 pub mod error;
@@ -57,3 +59,24 @@ pub use rustgram_server_util_macros::MariaDb as DB;
 pub use rustgram_server_util_macros::Sqlite as DB;
 #[cfg(feature = "derive_macro")]
 pub use rustgram_server_util_macros::*;
+
+/// A generic cors response handler for option routes.
+/// It is useful for api that can be accessed by any client
+pub async fn cors_handler(_req: Request) -> Response
+{
+	hyper::Response::builder()
+		.header("Content-Length", "0")
+		.header(
+			"Access-Control-Allow-Methods",
+			"GET, POST, PUT, DELETE, OPTIONS, PATCH",
+		)
+		.header("Access-Control-Max-Age", "86400")
+		.header("Access-Control-Allow-Origin", "*")
+		.header("Access-Control-Allow-Credentials", "true")
+		.header(
+			"Access-Control-Allow-Headers",
+			"x-sentc-app-token, x-sentc-group-access-id, Content-Type, Accept, Origin, Authorization, x-socket-id",
+		)
+		.body(hyper::Body::from(""))
+		.unwrap()
+}
